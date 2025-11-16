@@ -11,6 +11,7 @@ const get_courier_status = async (order) => {
       let reskey = res?.orderNos ? Object.keys(res.orderNos) : [];
       key = reskey.length ? res.orderNos[reskey[0]] : null;
     }
+    if (!key) return status;
 
     let auth = await authenticate_fez();
     try {
@@ -20,7 +21,7 @@ const get_courier_status = async (order) => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.authDetails.authToken}`,
+            Authorization: `Bearer ${auth?.authDetails?.authToken}`,
             "secret-key": process.env.FEZ_TOKEN,
           },
         }
