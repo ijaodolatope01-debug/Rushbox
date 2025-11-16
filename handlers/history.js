@@ -122,6 +122,7 @@ const update_status_of_ongoing_orders = async (user_id) => {
 const history = async (req, res) => {
   let { user_id, status, limit, skip } = req.body;
   limit = limit || 20;
+  skip = Number(skip) || 0;
 
   let orders = [];
 
