@@ -5,9 +5,10 @@ import { ORDERS } from "../ds/folders.js";
 const DELIVERY_STATUSES = ["ongoing", "completed", "canceled"];
 
 const store_delivery = async (response, body) => {
-  if (!response.courier_key) {
+  if (!response?.courier_key) {
     return { _id: 0 };
   }
+  console.log(`Storing delivery...`, response);
   let order = {
     courier: body.courier,
     sender_email: body.sender_email,
@@ -28,7 +29,10 @@ const store_delivery = async (response, body) => {
     user_id: body.user_id,
   };
 
-  return await (await ORDERS(body.user_id)).write(order);
+  let res = await (await ORDERS(body.user_id, "ongoing")).insertOne(order);
+  console.log(res);
+
+  return res;
 };
 
 const create_delivery = async (req, res) => {
@@ -68,6 +72,7 @@ const create_delivery = async (req, res) => {
 
   courier = courier && courier.toLowerCase();
   let reply = {};
+  console.log(details, courier);
 
   if (courier === "errandlr") {
     let url = "https://commerce.errandlr.com/request";
@@ -106,10 +111,11 @@ const create_delivery = async (req, res) => {
       let response = await fetch(url, options);
       data = await response.json();
 
-      if (data.status === 200) {
-        reply.courier_key = data.trackingId;
+      if (data?.status === 200) {
+        reply.courier_key = data?.trackingId;
         reply.courier_response = data;
       }
+      console.log(reply);
     } catch (error) {
       console.error(error);
     }
@@ -147,8 +153,8 @@ const create_delivery = async (req, res) => {
         options
       );
       data = await response.json();
-      data = data.data || data;
-      reply.courier_key = data.id;
+      data = data?.data || data;
+      reply.courier_key = data?.id;
       reply.courier_response = data;
     } catch (e) {
       console.log(e);
@@ -258,8 +264,8 @@ const create_delivery = async (req, res) => {
 
     try {
       let auth = await authenticate_kwik();
-      body.access_token = auth.data.access_token;
-      body.vendor_id = auth.data.vendor_details.vendor_id;
+      body.access_token = auth?.data?.access_token;
+      body.vendor_id = auth?.data?.vendor_details.vendor_id;
 
       let response = await fetch(url, {
         method: "POST",
@@ -270,9 +276,9 @@ const create_delivery = async (req, res) => {
       });
 
       let result = await response.json();
-      if (result.status === 200) {
-        data = result.data;
-        reply.courier_key = data.unique_order_id;
+      if (result?.status === 200) {
+        data = result?.data;
+        reply.courier_key = data?.unique_order_id;
         reply.courier_response = data;
       } else data = result;
     } catch (error) {
@@ -373,20 +379,21 @@ const create_delivery = async (req, res) => {
       data = await response.json();
 
       if (data.result) {
-        reply.courier_key = data.result.id;
-        reply.courier_response = data.result;
+        reply.courier_key = data?.result?.id;
+        reply.courier_response = data?.result;
       }
     } catch (error) {
       console.error("Error initiating delivery:", error);
     }
   }
 
-  data.rushbox_id = (
-    await store_delivery(reply, { ...details, user_id, courier })
-  )._id;
+  if (reply?.courier_key)
+    data.rushbox_id = (
+      await store_delivery(reply, { ...details, user_id, courier })
+    )._id;
 
   res.json({
-    ok: true,
+    ok: !!reply?.courier_key && true,
     data,
   });
 };

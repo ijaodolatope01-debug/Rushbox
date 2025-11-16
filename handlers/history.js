@@ -3,15 +3,15 @@ import { authenticate_fez } from "./utils/couriers.js";
 
 const get_courier_status = async (order) => {
   let status = "ongoing";
-  let key;
+  let key = order?.courier_key;
 
   if (order.courier === "fez") {
-    key = order.courier_key;
     if (!key) {
       let res = order.courier_response;
-      let reskey = Object.keys(res.orderNos);
-      key = res.orderNos[reskey[0]];
+      let reskey = res?.orderNos ? Object.keys(res.orderNos) : [];
+      key = reskey.length ? res.orderNos[reskey[0]] : null;
     }
+
     let auth = await authenticate_fez();
     try {
       const response = await fetch(
@@ -29,8 +29,8 @@ const get_courier_status = async (order) => {
       if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
 
       const data = await response.json();
-      if (data.status === "Success") {
-        if (["Picked-Up", "Dispatched"].includes(data.order.orderStatus)) {
+      if (data?.status === "Success") {
+        if (["Picked-Up", "Dispatched"].includes(data?.order?.orderStatus)) {
           status = "completed";
         }
       }
@@ -50,13 +50,12 @@ const get_courier_status = async (order) => {
       }),
     });
     res = await res.json();
-    if (res.OrderStatus === "PENDING") {
+    if (res?.OrderStatus === "PENDING") {
       status = status;
-    } else if (res.OrderStatus === "ASSIGNED") {
+    } else if (res?.OrderStatus === "ASSIGNED") {
       status = "completed";
     }
   } else if (order.courier === "kwik") {
-    key = order.courier_key;
     if (!key) {
       key = order.courier_response.unique_order_id;
     }
@@ -69,7 +68,7 @@ const get_courier_status = async (order) => {
 
       let data = await response.text();
       data = data.split(",");
-      if (data[0] === "ARRIVED") {
+      if (data && data[0] === "ARRIVED") {
         status = "completed";
       } else {
       }
@@ -84,8 +83,8 @@ const get_courier_status = async (order) => {
         `https://api.kwikpik.io/partners/requests/${order.courier_key}`
       );
       res = await res.json();
-      if (res.result) {
-        if (res.result.request.status === "COMPLETED") {
+      if (res?.result) {
+        if (res.result?.request?.status === "COMPLETED") {
           status = "completed";
         }
       }
@@ -95,53 +94,58 @@ const get_courier_status = async (order) => {
   return status;
 };
 
-const update_status = async (user_id, status) => {
-  let Orders = await ORDERS(user_id);
-  let ongoing = await Orders.index("ongoing");
-  let ongoing_orders = await ongoing.read();
+const update_status_of_ongoing_orders = async (user_id) => {
+  // Ongoing orders collection
+  let ongoing = await ORDERS(user_id, "ongoing");
+  // Read all ongoing orders
+  let ongoing_orders = await ongoing.find().sort({ _id: -1 }).toArray();
 
-  let orders = [];
+  // Iterate through the orders and query for their current status
   for (let o = 0; o < ongoing_orders.length; o++) {
     let order = ongoing_orders[o];
 
+    // Querying for their current status
     let stat = await get_courier_status(order);
+
+    // i.e the order have been updated from the courier
     if (stat !== "ongoing") {
-      if (stat === status) {
-        order.status = stat;
-        orders.push(order);
-      }
-      await Orders.update({ _id: order._id }, { status: stat });
+      // We set the order status
+      order.status = stat;
+      // We insert it into the user `status` collection
+      await (await ORDERS(user_id, stat)).insertOne(order);
+      // We remove from the user's ongoing collection
+      await ongoing.deleteOne({ _id: order._id });
     }
   }
-
-  return orders;
 };
 
 const history = async (req, res) => {
-  let { user_id, status, limit, cursor } = req.body;
+  let { user_id, status, limit, skip } = req.body;
   limit = limit || 20;
 
   let orders = [];
 
-  if (!cursor) {
-    orders = await update_status(user_id, status);
-  }
-  limit -= orders.length;
+  if (!skip) await update_status_of_ongoing_orders(user_id, status);
 
-  if (limit > 0) {
-    if (!cursor && orders.length) {
-      cursor = orders[0]._id;
-    }
-    orders.push(
-      ...(await (
-        await (await ORDERS(user_id)).index(status)
-      ).read(null, { limit, cursor }))
-    );
-  }
+  let Order_status = await ORDERS(user_id);
+  orders = await Order_status.find({})
+    .sort({ _id: -1 })
+    .skip(skip)
+    .limit(limit)
+    .toArray();
 
-  res.json({
+  let total = await Order_status.countDocuments();
+
+  await res.json({
     ok: true,
     data: orders,
+    pagination: {
+      page: skip / limit + 1,
+      pages: Math.ceil(total / limit),
+      skip,
+      limit,
+      total,
+    },
   });
 };
 

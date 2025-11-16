@@ -6,8 +6,10 @@ const USERS = async () => {
   return fold;
 };
 
-const ORDERS = async (user_id) => {
-  let fold = await DB().collection("Orders_" + user_id);
+const ORDERS = async (user_id, status) => {
+  let fold = await DB().collection(
+    "Orders_".concat(`${user_id}_`).concat(status)
+  );
 
   return fold;
 };
