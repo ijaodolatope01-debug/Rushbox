@@ -213,7 +213,7 @@ const create_delivery = async (req, res) => {
       fleet_id: "",
       latitude: 0,
       longitude: 0,
-      timezone: -330,
+      timezone: 60,
       has_pickup: 1,
       has_delivery: 1,
       pickup_delivery_relationship: 0,
