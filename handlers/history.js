@@ -113,7 +113,9 @@ const update_status_of_ongoing_orders = async (user_id) => {
       // We set the order status
       order.status = stat;
       // We insert it into the user `status` collection
-      await (await ORDERS(user_id, stat)).insertOne(order);
+      await (
+        await ORDERS(user_id, stat)
+      ).insertOne({ ...order, [stat]: new Date().toISOString() });
       // We remove from the user's ongoing collection
       await ongoing.deleteOne({ _id: order._id });
     }

@@ -27,6 +27,7 @@ const store_delivery = async (response, body) => {
     payment_status: body.payment_status,
     status: "ongoing",
     user_id: body.user_id,
+    created: new Date().toISOString(),
   };
 
   let res = await (await ORDERS(body.user_id, "ongoing")).insertOne(order);
