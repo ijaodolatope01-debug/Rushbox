@@ -3,12 +3,13 @@ import send_sms from "../send_sms.js";
 import { hash } from "godprotocol/utils/hash.js";
 import { USERS } from "../../ds/folders.js";
 
-let otps = new Object();
+let otps = new Object(),
+  expiry = 30;
 
 const send_otp = async (id, otp) => {
   console.log("Generated OTP:", otp);
 
-  const message = `Your verification code is ${otp}. It will expire in 5 minutes.`;
+  const message = `Your verification code is ${otp}. It will expire in ${expiry} minutes.`;
   return await send_sms(id, message);
 };
 
@@ -30,7 +31,7 @@ const verify_otp_ = (id, otp) => {
   if (!otp && (process.env.LOCALHOST || true)) return true;
 
   let tp = otps[id];
-  if (tp && tp.ts + 5 * 60 * 1000 < Date.now()) {
+  if (tp && tp.ts + expiry * 60 * 1000 < Date.now()) {
     return "expired";
   }
 
