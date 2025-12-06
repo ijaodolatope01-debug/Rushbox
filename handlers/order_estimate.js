@@ -98,7 +98,7 @@ const fetch_estimates = async (req, res) => {
     let chow_data = await chow_response.json();
     if (chow_data.status === "success") {
       estimates["Chowdeck"] = {
-        price: chow_data.data.total_amount,
+        price: chow_data.data.total_amount / 100,
         id: chow_data.data.id,
       };
     } else console.log(chow_data);
