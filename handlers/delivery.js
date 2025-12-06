@@ -48,8 +48,8 @@ const create_delivery = async (req, res) => {
       company_id,
       delivery_landmark,
       sender_phone,
-      dropoff_latitute: latitude,
-      dropoff_longitude: longitude,
+      dropoff_latitute,
+      dropoff_longitude,
       pickup_notes,
       order_number,
       recipient_email,
@@ -91,8 +91,8 @@ const create_delivery = async (req, res) => {
         name: sender_name,
         email: sender_email,
         phone: sender_phone,
-        latitude,
-        longitude,
+        latitude: dropoff_latitute,
+        longitude: dropoff_longitude,
         pickupNotes: pickup_notes,
         deliverToInformation: [
           {
@@ -236,8 +236,8 @@ const create_delivery = async (req, res) => {
         {
           address: recipient_address,
           name: recipient_name,
-          latitude: latitude,
-          longitude: longitude,
+          latitude: dropoff_latitute,
+          longitude: dropoff_longitude,
           time: new Date().toISOString(),
           phone: recipient_phone,
           email: recipient_email,
@@ -355,8 +355,8 @@ const create_delivery = async (req, res) => {
           body: JSON.stringify({
             vehicleType: "motorcycle",
             deliveryLocation: {
-              latitude: latitude,
-              longitude: longitude,
+              latitude: dropoff_latitute,
+              longitude: dropoff_longitude,
               address: recipient_address,
             },
             pickupLocation: {
