@@ -63,6 +63,7 @@ const fetch_estimates = async (req, res) => {
     if (data.status === "success") {
       estimates["Errandlr"] = {
         price: data.estimate,
+        goeid: data.geoid,
         duration: data.estimateLabel,
       };
     } else console.log(data);
