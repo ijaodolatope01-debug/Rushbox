@@ -31,10 +31,7 @@ const fetch_estimates = async (req, res) => {
     recipient_phone,
     sender_phone,
     package_weight,
-    destination_city,
-    pickup_city,
   } = req.body;
-  console.log(req.body, "in here");
 
   let estimates = {};
   let url = "https://commerce.errandlr.com/v2/estimate";
@@ -64,7 +61,10 @@ const fetch_estimates = async (req, res) => {
     let data = await response.json();
 
     if (data.status === "success") {
-      estimates["Errandlr"] = data;
+      estimates["Errandlr"] = {
+        price: data.estimate,
+        duration: data.estimateLabel,
+      };
     } else console.log(data);
   } catch (error) {
     console.error(error);
@@ -96,7 +96,10 @@ const fetch_estimates = async (req, res) => {
     );
     let chow_data = await chow_response.json();
     if (chow_data.status === "success") {
-      estimates["Chowdeck"] = chow_data.data;
+      estimates["Chowdeck"] = {
+        price: chow_data.data.total_amount,
+        id: chow_data.data.id,
+      };
     } else console.log(chow_data);
   } catch (e) {}
 
@@ -133,7 +136,7 @@ const fetch_estimates = async (req, res) => {
     data = await data.json();
 
     if (data.status === "Success") {
-      estimates["Fez"] = data.Cost;
+      estimates["Fez"] = { price: data.Cost.cost };
     } else console.log(data);
   } catch (e) {
     console.log(e.message);
@@ -216,8 +219,9 @@ const fetch_estimates = async (req, res) => {
 
     kwik_response = await kwik_response.json();
 
-    if (kwik_response.status === 200) estimates["Kwik"] = kwik_response.data;
-    else console.log(kwik_response);
+    if (kwik_response.status === 200) {
+      estimates["Kwik"] = { price: Number(kwik_response.data.per_task_cost) };
+    } else console.log(kwik_response);
   } catch (error) {
     console.error("Error:", error);
   }
@@ -245,7 +249,10 @@ const fetch_estimates = async (req, res) => {
 
     data = await data.json();
     if (data && data.ResponseMessage === "Success") {
-      estimates["Dellyman"] = data;
+      estimates["Dellyman"] = {
+        price: data.Companies[0]?.TotalPrice,
+        duration: "Next day",
+      };
     }
   } catch (e) {
     console.log(e);
@@ -279,7 +286,10 @@ const fetch_estimates = async (req, res) => {
 
     const data = await response.json();
     if (data.result) {
-      estimates["Kwikpik"] = data.result;
+      estimates["Kwikpik"] = {
+        price: data.result.total,
+        duration: data.result.duration,
+      };
     }
     // console.log("Estimate:", data);
   } catch (error) {
