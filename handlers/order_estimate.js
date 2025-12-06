@@ -297,6 +297,16 @@ const fetch_estimates = async (req, res) => {
     console.error("Error fetching estimate:", error);
   }
 
+  for (let courier in estimates) {
+    let data = estimates[courier];
+    let price = data.price;
+    if (price > 300) {
+      data.charge = 500;
+    } else data.charge = 300;
+
+    data.total_price = data.price + data.charge;
+  }
+
   res.json({
     ok: true,
     data: estimates,
