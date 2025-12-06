@@ -353,7 +353,7 @@ const create_delivery = async (req, res) => {
             "x-api-key": process.env.KWIKPIK_TOKEN,
           },
           body: JSON.stringify({
-            vehicleType: "bike",
+            vehicleType: "motorcycle",
             deliveryLocation: {
               latitude: latitude,
               longitude: longitude,
@@ -375,7 +375,7 @@ const create_delivery = async (req, res) => {
             itemWeight: package_weight,
             itemName: order_name,
             insured: false,
-            image: "https://share.google/images/08A0YjdFyd5iB5WxO",
+            // image: "https://share.google/images/08A0YjdFyd5iB5WxO",
             // itemQuantity: 0
           }),
         }
