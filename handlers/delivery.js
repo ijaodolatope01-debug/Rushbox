@@ -301,7 +301,7 @@ const create_delivery = async (req, res) => {
           PaymentMode: "online",
           Vehicle: "Bike",
           PickUpContactName: sender_name,
-          PickUpContactNumber: sender_phone.slice(1),
+          PickUpContactNumber: "0".concat(sender_phone.slice(4)),
           PickUpGooglePlaceAddress: pickup_address,
           PickUpLandmark: "N/A",
           IsProductOrder: 0,
@@ -319,7 +319,7 @@ const create_delivery = async (req, res) => {
             {
               PackageDescription: package_detail,
               DeliveryContactName: recipient_name,
-              DeliveryContactNumber: recipient_phone.slice(1),
+              DeliveryContactNumber: "0".concat(recipient_phone.slice(4)),
               PackageWeight: package_weight,
               DeliveryGooglePlaceAddress: recipient_address,
               DeliveryLandmark: delivery_landmark,
@@ -331,12 +331,15 @@ const create_delivery = async (req, res) => {
 
       data = await res.json();
 
+      console.log(data);
       try {
         if (data.ResponseMessage === "Success") {
           reply.courier_key = data.OrderID;
           reply.courier_response = data;
         }
-      } catch (e) {}
+      } catch (e) {
+        console.log(e.message);
+      }
     } catch (e) {}
   } else if (courier === "kwikpik") {
     try {
