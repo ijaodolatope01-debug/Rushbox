@@ -63,7 +63,7 @@ const fetch_estimates = async (req, res) => {
     if (data.status === "success") {
       estimates["Errandlr"] = {
         price: data.estimate,
-        goeId: data.geoId,
+        meta: { geoId: data.geoId },
         duration: data.estimateLabel,
       };
     } else console.log(data);
@@ -99,7 +99,7 @@ const fetch_estimates = async (req, res) => {
     if (chow_data.status === "success") {
       estimates["Chowdeck"] = {
         price: chow_data.data.total_amount / 100,
-        id: chow_data.data.id,
+        meta: { id: chow_data.data.id },
       };
     } else console.log(chow_data);
   } catch (e) {}
@@ -137,7 +137,7 @@ const fetch_estimates = async (req, res) => {
     data = await data.json();
 
     if (data.status === "Success") {
-      estimates["Fez"] = { price: data.Cost.cost };
+      estimates["Fez"] = { price: data.Cost.cost, duration: "Same Day" };
     } else console.log(data);
   } catch (e) {
     console.log(e.message);
@@ -221,7 +221,10 @@ const fetch_estimates = async (req, res) => {
     kwik_response = await kwik_response.json();
 
     if (kwik_response.status === 200) {
-      estimates["Kwik"] = { price: Number(kwik_response.data.per_task_cost) };
+      estimates["Kwik"] = {
+        price: Number(kwik_response.data.per_task_cost),
+        duration: "Same Day",
+      };
     } else console.log(kwik_response);
   } catch (error) {
     console.error("Error:", error);
