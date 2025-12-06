@@ -64,6 +64,7 @@ const fetch_estimates = async (req, res) => {
       estimates["Errandlr"] = {
         price: data.estimate,
         goeid: data.geoid,
+        data,
         duration: data.estimateLabel,
       };
     } else console.log(data);
