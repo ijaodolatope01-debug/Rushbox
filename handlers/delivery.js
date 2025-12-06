@@ -353,7 +353,7 @@ const create_delivery = async (req, res) => {
             "x-api-key": process.env.KWIKPIK_TOKEN,
           },
           body: JSON.stringify({
-            vehicleType: "car",
+            vehicleType: "bike",
             deliveryLocation: {
               latitude: latitude,
               longitude: longitude,
