@@ -331,7 +331,7 @@ const create_delivery = async (req, res) => {
 
       data = await res.json();
 
-      console.log(data);
+      // console.log(data);
       try {
         if (data.ResponseMessage === "Success") {
           reply.courier_key = data.OrderID;
@@ -403,6 +403,8 @@ const create_delivery = async (req, res) => {
   });
 };
 
-function normalise_order_response(data) {}
+function normalise_order_response(data) {
+  return data;
+}
 
 export { create_delivery, DELIVERY_STATUSES };
