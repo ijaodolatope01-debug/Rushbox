@@ -28,6 +28,7 @@ const store_delivery = async (response, body) => {
     status: "ongoing",
     user_id: body.user_id,
     created: new Date().toISOString(),
+    _id: crypto.randomUUID(),
   };
 
   let res = await (await ORDERS(body.user_id, "ongoing")).insertOne(order);
@@ -40,7 +41,7 @@ const create_delivery = async (req, res) => {
   let { courier, details, user_id } = req.body;
   details = { ...details, ...details.meta };
   let {
-      fee,
+      delivery_fare,
       geoid,
       sender_name,
       sender_email,
@@ -75,7 +76,6 @@ const create_delivery = async (req, res) => {
 
   courier = courier && courier.toLowerCase();
   let reply = {};
-  console.log(details, courier);
 
   if (courier === "errandlr") {
     let url = "https://commerce.errandlr.com/request";
@@ -118,7 +118,6 @@ const create_delivery = async (req, res) => {
         reply.courier_key = data?.trackingId;
         reply.courier_response = data;
       }
-      console.log(reply);
     } catch (error) {
       console.error(error);
     }
@@ -195,7 +194,7 @@ const create_delivery = async (req, res) => {
 
       let result = await response.json();
       data = result;
-      console.log(data);
+
       try {
         if (data.status === "Success") {
           reply.courier_response = result;
@@ -302,7 +301,7 @@ const create_delivery = async (req, res) => {
           PaymentMode: "online",
           Vehicle: "Bike",
           PickUpContactName: sender_name,
-          PickUpContactNumber: sender_phone,
+          PickUpContactNumber: sender_phone.slice(1),
           PickUpGooglePlaceAddress: pickup_address,
           PickUpLandmark: "N/A",
           IsProductOrder: 0,
@@ -320,7 +319,7 @@ const create_delivery = async (req, res) => {
             {
               PackageDescription: package_detail,
               DeliveryContactName: recipient_name,
-              DeliveryContactNumber: recipient_phone,
+              DeliveryContactNumber: recipient_phone.slice(1),
               PackageWeight: package_weight,
               DeliveryGooglePlaceAddress: recipient_address,
               DeliveryLandmark: delivery_landmark,
@@ -397,8 +396,10 @@ const create_delivery = async (req, res) => {
 
   res.json({
     ok: !!reply?.courier_key && true,
-    data,
+    data: normalise_order_response(data),
   });
 };
+
+function normalise_order_response(data) {}
 
 export { create_delivery, DELIVERY_STATUSES };
