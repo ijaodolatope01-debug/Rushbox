@@ -61,7 +61,7 @@ const fetch_estimates = async (req, res) => {
     let data = await response.json();
 
     if (data.status === "success") {
-      estimates["Errandlr"] = {
+      estimates["errandlr"] = {
         price: data.estimate,
         meta: { geoId: data.geoId },
         duration: data.estimateLabel,
@@ -97,7 +97,7 @@ const fetch_estimates = async (req, res) => {
     );
     let chow_data = await chow_response.json();
     if (chow_data.status === "success") {
-      estimates["Chowdeck"] = {
+      estimates["chowdeck"] = {
         price: chow_data.data.total_amount / 100,
         meta: { id: chow_data.data.id },
       };
@@ -137,7 +137,7 @@ const fetch_estimates = async (req, res) => {
     data = await data.json();
 
     if (data.status === "Success") {
-      estimates["Fez"] = { price: data.Cost.cost, duration: "Same Day" };
+      estimates["fez"] = { price: data.Cost.cost, duration: "Same Day" };
     } else console.log(data);
   } catch (e) {
     console.log(e.message);
@@ -221,7 +221,7 @@ const fetch_estimates = async (req, res) => {
     kwik_response = await kwik_response.json();
 
     if (kwik_response.status === 200) {
-      estimates["Kwik"] = {
+      estimates["kwik"] = {
         price: Number(kwik_response.data.per_task_cost),
         duration: "Same Day",
       };
@@ -253,7 +253,7 @@ const fetch_estimates = async (req, res) => {
 
     data = await data.json();
     if (data && data.ResponseMessage === "Success") {
-      estimates["Dellyman"] = {
+      estimates["dellyman"] = {
         price: data.Companies[0]?.TotalPrice,
         duration: "Next day",
       };
@@ -290,7 +290,7 @@ const fetch_estimates = async (req, res) => {
 
     const data = await response.json();
     if (data.result) {
-      estimates["Kwikpik"] = {
+      estimates["kwikpik"] = {
         price: data.result.total,
         duration: data.result.duration,
       };
