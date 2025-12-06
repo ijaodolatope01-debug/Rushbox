@@ -38,7 +38,9 @@ const store_delivery = async (response, body) => {
 
 const create_delivery = async (req, res) => {
   let { courier, details, user_id } = req.body;
+  details = { ...details, ...details.meta };
   let {
+      fee,
       geoid,
       sender_name,
       sender_email,

@@ -63,7 +63,7 @@ const fetch_estimates = async (req, res) => {
     if (data.status === "success") {
       estimates["errandlr"] = {
         price: data.estimate,
-        meta: { geoId: data.geoId },
+        meta: { geoid: data.geoId },
         duration: data.estimateLabel,
       };
     } else console.log(data);
