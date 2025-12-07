@@ -150,6 +150,7 @@ const history = async (req, res) => {
 
     nrm.order_status = o.status;
     nrm.order_id = o._id;
+    nrm.created = o.created;
 
     return nrm;
   });

@@ -395,7 +395,7 @@ const create_delivery = async (req, res) => {
 
   let norm;
   if (reply?.courier_key) {
-    norm = normalise_order_response(data, details, courier, {
+    norm = normalise_order_response(data, details, {
       courier,
       tracking: reply.courier_key,
     });
