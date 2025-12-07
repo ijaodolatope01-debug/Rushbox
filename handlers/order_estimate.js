@@ -137,7 +137,7 @@ const fetch_estimates = async (req, res) => {
     data = await data.json();
 
     if (data.status === "Success") {
-      estimates["fez"] = { price: data.Cost.cost, duration: "Same Day" };
+      estimates["fez"] = { price: data.Cost.cost };
     } else console.log(data);
   } catch (e) {
     console.log(e.message);
@@ -223,7 +223,6 @@ const fetch_estimates = async (req, res) => {
     if (kwik_response.status === 200) {
       estimates["kwik"] = {
         price: Number(kwik_response.data.per_task_cost),
-        duration: "Same Day",
       };
     } else console.log(kwik_response);
   } catch (error) {
@@ -308,6 +307,8 @@ const fetch_estimates = async (req, res) => {
     } else data.charge = 300;
 
     data.total_price = data.price + data.charge;
+
+    if (!estimates[courier].duration) estimates[courier].duration = "Same day";
   }
 
   res.json({
