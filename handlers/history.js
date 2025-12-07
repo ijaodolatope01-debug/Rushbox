@@ -145,24 +145,7 @@ const history = async (req, res) => {
   let total = await Order_status.countDocuments();
 
   orders = orders.map((o) => {
-    let nrm = o.norm;
-    if (!nrm) return o;
-
-    nrm.order_status = o.status;
-    nrm.order_id = o._id;
-    nrm.created = o.created;
-
-    let delivery_fare = nrm.delivery_fare,
-      charge = delivery_fare > 600 ? 500 : 300;
-
-    nrm.fare = {
-      original: delivery_fare - charge,
-      charge,
-      total: delivery_fare,
-    };
-    delete nrm.delivery_fare;
-
-    return nrm;
+    return normalise_order(o);
   });
 
   await res.json({
@@ -178,6 +161,27 @@ const history = async (req, res) => {
   });
 };
 
+const normalise_order = (o) => {
+  let nrm = o?.norm;
+  if (!nrm) return o;
+
+  nrm.order_status = o.status;
+  nrm.order_id = o._id;
+  nrm.created = o.created;
+
+  let delivery_fare = nrm.delivery_fare,
+    charge = delivery_fare > 600 ? 500 : 300;
+
+  nrm.fare = {
+    original: delivery_fare - charge,
+    charge,
+    total: delivery_fare,
+  };
+  delete nrm.delivery_fare;
+
+  return nrm;
+};
+
 const get_order = async (req, res) => {
   let { _id } = req.params;
 
@@ -188,7 +192,7 @@ const get_order = async (req, res) => {
   res.json({
     ok: !!_id,
     message: _id ? "Order retrieved" : "Order not found",
-    data: order || null,
+    data: normalise_order(order) || null,
   });
 };
 
