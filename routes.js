@@ -33,7 +33,7 @@ const router = async (app) => {
 
   // History
   app.post("/history", history);
-  app.post("/get_order/:_id", get_order);
+  app.get("/get_order/:_id", get_order);
 
   // Wallet
   app.post("/deduct_wallet", deduct);
