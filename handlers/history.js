@@ -152,6 +152,16 @@ const history = async (req, res) => {
     nrm.order_id = o._id;
     nrm.created = o.created;
 
+    let delivery_fare = nrm.delivery_fare,
+      charge = delivery_fare > 600 ? 500 : 300;
+
+    nrm.fare = {
+      original: delivery_fare - charge,
+      charge,
+      total: delivery_fare,
+    };
+    delete nrm.delivery_fare;
+
     return nrm;
   });
 
@@ -168,4 +178,18 @@ const history = async (req, res) => {
   });
 };
 
-export { history };
+const get_order = async (req, res) => {
+  let { _id } = req.params;
+
+  let Orders = await ORDERS();
+
+  let order = await Orders.findOne({ _id });
+
+  res.json({
+    ok: !!_id,
+    message: _id ? "Order retrieved" : "Order not found",
+    data: order || null,
+  });
+};
+
+export { history, get_order };

@@ -1,6 +1,6 @@
 import { login, resend_otp, signup, verify_otp } from "./handlers/auth.js";
 import { create_delivery } from "./handlers/delivery.js";
-import { history } from "./handlers/history.js";
+import { get_order, history } from "./handlers/history.js";
 import { fetch_estimates } from "./handlers/order_estimate.js";
 import {
   confirm_delete_account,
@@ -33,6 +33,7 @@ const router = async (app) => {
 
   // History
   app.post("/history", history);
+  app.post("/get_order/:_id", get_order);
 
   // Wallet
   app.post("/deduct_wallet", deduct);
