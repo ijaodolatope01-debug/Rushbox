@@ -26,12 +26,13 @@ const store_delivery = async (response, body) => {
     payment_reference: body.payment_reference,
     payment_status: body.payment_status,
     status: "ongoing",
+    norm: body.norm,
     user_id: body.user_id,
     created: new Date().toISOString(),
     _id: crypto.randomUUID(),
   };
 
-  let res = await (await ORDERS(body.user_id, "ongoing")).insertOne(order);
+  let res = await (await ORDERS()).insertOne(order);
   console.log(res);
 
   return res;
@@ -392,19 +393,53 @@ const create_delivery = async (req, res) => {
     }
   }
 
-  if (reply?.courier_key)
+  let norm;
+  if (reply?.courier_key) {
+    norm = normalise_order_response(data, details, courier, {
+      courier,
+      tracking: reply.courier_key,
+    });
+
     data.rushbox_id = (
-      await store_delivery(reply, { ...details, user_id, courier })
+      await store_delivery(reply, { ...details, norm, user_id, courier })
     )._id;
+
+    norm.order_id = data.rushbox_id;
+  }
 
   res.json({
     ok: !!reply?.courier_key && true,
-    data: normalise_order_response(data),
+    data: norm || data,
   });
 };
 
-function normalise_order_response(data) {
-  return data;
+function normalise_order_response(data, details, courier) {
+  let norm = {
+    sender: {
+      name: details.sender_name,
+      phone: details.sender_phone,
+    },
+    reciever: {
+      name: details.recipient_name,
+      phone: details.recipient_phone,
+    },
+    pickup: {
+      address: details.pickup_address,
+      latitude: details.pickup_latitude,
+      longitude: details.pickup_longitude,
+    },
+    dropoff: {
+      address: details.dropoff_address,
+      latitude: details.dropoff_latitude,
+      longitude: details.dropoff_longitude,
+    },
+    delivery_fare: details.delivery_fare,
+    courier: courier.name,
+    courier_tracking: courier.tracking,
+    order_id: data.rushbox_id,
+  };
+
+  return norm;
 }
 
 export { create_delivery, DELIVERY_STATUSES };

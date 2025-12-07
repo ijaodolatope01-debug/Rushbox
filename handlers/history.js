@@ -97,9 +97,12 @@ const get_courier_status = async (order) => {
 
 const update_status_of_ongoing_orders = async (user_id) => {
   // Ongoing orders collection
-  let ongoing = await ORDERS(user_id, "ongoing");
+  let ongoing = await ORDERS();
   // Read all ongoing orders
-  let ongoing_orders = await ongoing.find().sort({ _id: -1 }).toArray();
+  let ongoing_orders = await ongoing
+    .find({ user: user_id, status: "ongoing" })
+    .sort({ _id: -1 })
+    .toArray();
 
   // Iterate through the orders and query for their current status
   for (let o = 0; o < ongoing_orders.length; o++) {
@@ -114,10 +117,11 @@ const update_status_of_ongoing_orders = async (user_id) => {
       order.status = stat;
       // We insert it into the user `status` collection
       await (
-        await ORDERS(user_id, stat)
-      ).insertOne({ ...order, [stat]: new Date().toISOString() });
-      // We remove from the user's ongoing collection
-      await ongoing.deleteOne({ _id: order._id });
+        await ORDERS()
+      ).updateOne(
+        { _id: order._id },
+        { $set: { status: stat, [stat]: new Date().toISOString() } }
+      );
     }
   }
 };
@@ -139,6 +143,16 @@ const history = async (req, res) => {
     .toArray();
 
   let total = await Order_status.countDocuments();
+
+  orders = orders.map((o) => {
+    let nrm = o.norm;
+    if (!nrm) return o;
+
+    nrm.order_status = o.status;
+    nrm.order_id = o._id;
+
+    return nrm;
+  });
 
   await res.json({
     ok: true,
