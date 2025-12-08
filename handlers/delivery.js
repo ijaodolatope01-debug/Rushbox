@@ -429,10 +429,11 @@ function normalise_order_response(data, details, courier) {
       longitude: details.pickup_longitude,
     },
     dropoff: {
-      address: details.dropoff_address,
+      address: details.recipient_address,
       latitude: details.dropoff_latitude,
       longitude: details.dropoff_longitude,
     },
+    delivery_notes: details.delivery_notes,
     delivery_fare: details.delivery_fare,
     courier: courier.name,
     courier_tracking: courier.tracking,
