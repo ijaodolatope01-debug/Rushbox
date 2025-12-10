@@ -137,7 +137,7 @@ const history = async (req, res) => {
 
   let Order_status = await ORDERS();
   orders = await Order_status.find({ user_id, status })
-    .sort({ _id: -1 })
+    .sort({ created: -1 })
     .skip(skip)
     .limit(limit)
     .toArray();
