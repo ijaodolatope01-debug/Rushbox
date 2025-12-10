@@ -135,8 +135,8 @@ const history = async (req, res) => {
 
   if (!skip) await update_status_of_ongoing_orders(user_id);
 
-  let Order_status = await ORDERS(user_id, status);
-  orders = await Order_status.find({})
+  let Order_status = await ORDERS();
+  orders = await Order_status.find({ user_id, status })
     .sort({ _id: -1 })
     .skip(skip)
     .limit(limit)
