@@ -1,6 +1,6 @@
 import { hash } from "godprotocol/utils/hash.js";
 import { id_exists_, request_otp_, verify_otp_ } from "./utils/user.js";
-import { USERS } from "../ds/folders.js";
+import { ORDERS, USERS } from "../ds/folders.js";
 
 const user = async (req, res) => {
   let { _id } = req.params;
@@ -33,10 +33,7 @@ const confirm_delete_account = async (req, res) => {
 
   let usr = await (await USERS()).deleteOne({ _id: user_id });
 
-  // for (let s = 0; s < DELIVERY_STATUSES.length; s++) {
-  //   let fold = await ORDERS(user_id);
-  //   await fold.drop();
-  // }
+  await (await ORDERS()).deleteMany({ user_id });
 
   res.json({
     ok: !!usr,
