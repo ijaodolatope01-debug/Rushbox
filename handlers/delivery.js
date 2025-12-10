@@ -33,9 +33,8 @@ const store_delivery = async (response, body) => {
   };
 
   let res = await (await ORDERS()).insertOne(order);
-  console.log(res);
 
-  return res;
+  return { _id: res.insertedId };
 };
 
 const create_delivery = async (req, res) => {
