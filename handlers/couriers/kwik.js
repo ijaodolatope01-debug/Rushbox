@@ -34,10 +34,29 @@ const estimate_kwik = async ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          custom_field_template: "pricing-template",
           access_token: vendor.access_token,
           domain_name: "staging-client-panel.kwik.delivery",
+          timezone: -330,
           vendor_id: vendor.vendor_details.vendor_id,
           is_multiple_tasks: 1,
+          layout_type: 0,
+          pickup_custom_field_template: "pricing-template",
+          deliveries: [
+            {
+              address: destination_label,
+              name: recipient_name,
+              latitude: Number(destination_latitude),
+              longitude: Number(destination_longitude),
+              phone: recipient_phone,
+              has_return_task: false,
+              is_package_insured: 0,
+            },
+          ],
+          has_pickup: 1,
+          has_delivery: 1,
+          auto_assignment: 1,
+          user_id: 1,
           pickups: [
             {
               address: pickup_label,
@@ -47,16 +66,16 @@ const estimate_kwik = async ({
               phone: sender_phone,
             },
           ],
-          deliveries: [
-            {
-              address: destination_label,
-              name: recipient_name,
-              latitude: Number(destination_latitude),
-              longitude: Number(destination_longitude),
-              phone: recipient_phone,
-            },
-          ],
           payment_method: 32,
+          form_id: 2,
+          vehicle_id: 4,
+          delivery_instruction:
+            "Hey, Please deliver the parcel with safety. Thanks in advance",
+          // is_loader_required: 1,
+          // loaders_amount: 40,
+          // loaders_count: 4,
+          // is_cod_job: 1,
+          // parcel_amount: 1000
         }),
       }
     );

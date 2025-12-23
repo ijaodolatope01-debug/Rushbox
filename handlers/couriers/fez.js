@@ -33,6 +33,7 @@ const estimate_fez = async ({
     });
 
     const data = await res.json();
+    console.log(data);
     if (data.status !== "Success") return null;
 
     return {
