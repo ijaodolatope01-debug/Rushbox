@@ -1,5 +1,10 @@
 import crypto from "crypto";
-import { TRANSACTIONS, VIRTUAL_ACCOUNTS, WALLETS } from "../ds/folders.js";
+import {
+  EVENT_LOGS,
+  TRANSACTIONS,
+  VIRTUAL_ACCOUNTS,
+  WALLETS,
+} from "../ds/folders.js";
 import { hash } from "./auth.js";
 
 const paystack_webhook_events_listener = async (req, res) => {
@@ -9,6 +14,7 @@ const paystack_webhook_events_listener = async (req, res) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
+  await (await EVENT_LOGS()).insertOne(body);
   if (hash_ === req.headers["x-paystack-signature"]) {
     if (body.event === "charge.success") {
       let customer = body.data.customer;
@@ -23,7 +29,7 @@ const paystack_webhook_events_listener = async (req, res) => {
           await WALLETS()
         ).updateOne(
           { _id: virtual_account.user },
-          { $inc: { balance: value } }
+          { $inc: { balance: value } },
         );
 
         let authorization = body.data.authorization;
