@@ -46,7 +46,9 @@ const delivery_failed = async (message, details) => {
 const validateEstimate = async (estimate_id, courier) => {
   let estimate = await (await ESTIMATES()).findOne({ _id: estimate_id });
 
-  let courier_estimate = estimate && estimate[courier];
+  if (estimate) estimate = estimate.estimates;
+
+  let courier_estimate = estimate[courier];
 
   return courier_estimate;
 };
