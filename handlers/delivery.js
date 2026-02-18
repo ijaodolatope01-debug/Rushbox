@@ -46,9 +46,13 @@ const delivery_failed = async (message, details) => {
 const validateEstimate = async (estimate_id, courier) => {
   let estimate = await (await ESTIMATES()).findOne({ _id: estimate_id });
 
+  console.log(estimate_id, courier);
+
   if (estimate) estimate = estimate.estimates;
 
   let courier_estimate = estimate[courier];
+
+  console.log(courier_estimate);
 
   return courier_estimate;
 };
@@ -59,8 +63,12 @@ const create_delivery = async (req, res) => {
     if (res) {
       courierName = req.body.courier.toLowerCase();
       details = req.body.details;
+      details.courier = courierName;
 
       details.user_id = req.body.user_id;
+    } else {
+      details = req;
+      courierName = details.courier;
     }
 
     const rushbox_id = details.rushbox_id || crypto.randomUUID();

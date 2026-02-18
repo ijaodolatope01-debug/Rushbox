@@ -12,6 +12,8 @@ const handle_payment_ref = async (payment_reference, delivery_details) => {
     return "PENDING";
   }
 
+  await Refs.deleteOne({ _id: payment_reference });
+
   let user = delivery_details.user_id;
 
   let wallet = await credit_wallet(user, ref.amount / 100, {
