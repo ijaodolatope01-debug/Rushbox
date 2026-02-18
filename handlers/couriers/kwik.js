@@ -22,7 +22,7 @@ const estimate_kwik = async ({
           password: process.env.KWIK_PASSWORD,
           api_login: 1,
         }),
-      }
+      },
     );
 
     auth = await auth.json();
@@ -77,7 +77,7 @@ const estimate_kwik = async ({
           // is_cod_job: 1,
           // parcel_amount: 1000
         }),
-      }
+      },
     );
 
     const data = await res.json();
@@ -94,4 +94,112 @@ const estimate_kwik = async ({
   }
 };
 
-export { estimate_kwik };
+import { authenticate_kwik } from "../utils/couriers.js";
+
+async function create_kwik(details) {
+  const {
+    pickup_address,
+    sender_name,
+    pickup_latitude,
+    pickup_longitude,
+    sender_phone,
+    sender_email,
+    recipient_address,
+    recipient_name,
+    dropoff_latitude,
+    dropoff_longitude,
+    recipient_phone,
+    recipient_email,
+    value_of_item,
+  } = details;
+
+  let reply = {};
+  let data;
+
+  try {
+    const auth = await authenticate_kwik();
+
+    const body = {
+      domain_name: "staging-client-panel.kwik.delivery",
+      is_multiple_tasks: 1,
+      fleet_id: "",
+      latitude: 0,
+      longitude: 0,
+      timezone: 60,
+      has_pickup: 1,
+      has_delivery: 1,
+      pickup_delivery_relationship: 0,
+      layout_type: 0,
+      auto_assignment: 1,
+      team_id: "",
+      pickups: [
+        {
+          address: pickup_address,
+          name: sender_name,
+          latitude: pickup_latitude,
+          longitude: pickup_longitude,
+          time: new Date().toISOString(),
+          phone: sender_phone,
+          email: sender_email,
+        },
+      ],
+      deliveries: [
+        {
+          address: recipient_address,
+          name: recipient_name,
+          latitude: dropoff_latitude,
+          longitude: dropoff_longitude,
+          time: new Date().toISOString(),
+          phone: recipient_phone,
+          email: recipient_email,
+          has_return_task: false,
+          is_package_insured: 0,
+          hadVairablePayment: 1,
+          hadFixedPayment: 0,
+          is_task_otp_required: 0,
+        },
+      ],
+      insurance_amount: 0,
+      total_no_of_tasks: 1,
+      total_service_charge: 0,
+      payment_method: 524288,
+      amount: value_of_item.toString(),
+      surge_cost: 0,
+      surge_type: 0,
+      delivery_instruction: "",
+      loaders_amount: 0,
+      loaders_count: 0,
+      is_loader_required: 0,
+      delivery_images: "",
+      vehicle_id: 1,
+      sareaId: "6",
+      access_token: auth?.data?.access_token,
+      vendor_id: auth?.data?.vendor_details.vendor_id,
+    };
+
+    const response = await fetch(
+      "https://staging-api-test.kwik.delivery/v2/create_task_via_vendor",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    );
+
+    const result = await response.json();
+
+    if (result?.status === 200) {
+      data = result?.data;
+      reply.courier_key = data?.unique_order_id;
+      reply.courier_response = data;
+    } else {
+      data = result;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+
+  return reply;
+}
+
+export { estimate_kwik, create_kwik };

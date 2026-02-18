@@ -1,3 +1,4 @@
+import { ESTIMATES } from "../ds/folders.js";
 import { estimate_chowdeck } from "./couriers/chowdeck.js";
 import { estimate_dellyman } from "./couriers/dellyman.js";
 import { estimate_errandlr } from "./couriers/errandlr.js";
@@ -55,6 +56,14 @@ const fetch_estimates = async (req, res) => {
       acc[item.courier] = item;
       return acc;
     }, {});
+
+  let estimate_id = crypto.randomUUID();
+  await (await ESTIMATES()).insertOne({ _id: estimate_id, estimates });
+
+  normalized = {
+    _id: estimate_id,
+    normalized,
+  };
 
   res.json({ ok: true, data: normalized });
 };

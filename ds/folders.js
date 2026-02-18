@@ -36,4 +36,32 @@ const TRANSACTIONS = async (wallet) => {
   return fold;
 };
 
-export { USERS, ORDERS, WALLETS, VIRTUAL_ACCOUNTS, EVENT_LOGS, TRANSACTIONS };
+const PAYMENT_REFS = async () => {
+  let fold = await DB().collection("Payment_refs");
+
+  return fold;
+};
+
+const ESTIMATES = async () => {
+  let fold = await DB().collection("Estimates");
+
+  return fold;
+};
+
+const PENDING_DELIVERIES = async () => {
+  let fold = await DB().collection("Pending_deliveries");
+
+  return fold;
+};
+
+export {
+  USERS,
+  ORDERS,
+  WALLETS,
+  VIRTUAL_ACCOUNTS,
+  EVENT_LOGS,
+  TRANSACTIONS,
+  ESTIMATES,
+  PENDING_DELIVERIES,
+  PAYMENT_REFS,
+};
