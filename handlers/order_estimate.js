@@ -49,7 +49,7 @@ const fetch_estimates = async (req, res) => {
     estimate_errandlr(payload),
   ]);
 
-  const normalized = estimates
+  let normalized = estimates
     .filter(Boolean)
     .map(applyCharges)
     .reduce((acc, item) => {
