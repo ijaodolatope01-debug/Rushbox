@@ -60,7 +60,12 @@ const fetch_estimates = async (req, res) => {
   let estimate_id = crypto.randomUUID();
   await (
     await ESTIMATES()
-  ).insertOne({ _id: estimate_id, estimates: normalized });
+  ).insertOne({
+    _id: estimate_id,
+    estimates: normalized,
+    used: false,
+    created: Date.now(),
+  });
 
   res.json({ ok: true, data: { estimates: normalized, _id: estimate_id } });
 };

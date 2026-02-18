@@ -17,7 +17,8 @@ async function charge_wallet(user_id, value, order_id) {
     title: "Order creation",
     amount: value,
     wallet: user_id,
-    misc: { from: { order_id } },
+    _id: crypto.randomUUID(),
+    misc: { order_id },
   });
 
   return { ok: true };
@@ -38,6 +39,7 @@ const credit_wallet = async (wallet, value, { authorization }) => {
   await (
     await TRANSACTIONS(wallet)
   ).insertOne({
+    _id: crypto.randomUUID(),
     title: "Top-up",
     amount: value,
     wallet,
@@ -61,6 +63,7 @@ const revert_wallet = async (wallet, value, order_id) => {
   await (
     await TRANSACTIONS(wallet)
   ).insertOne({
+    _id: crypto.randomUUID(),
     title: "Order reverted",
     amount: value,
     wallet,

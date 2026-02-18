@@ -44,12 +44,13 @@ const delivery_failed = async (message, details) => {
 };
 
 const validateEstimate = async (estimate_id, courier) => {
-  let estimate = await (await ESTIMATES()).findOne({ _id: estimate_id });
+  let estimate = await (
+    await ESTIMATES()
+  ).findOne({ _id: estimate_id, used: false });
 
-  console.log(estimate_id, courier);
+  if (!estimate) return;
 
-  if (estimate) estimate = estimate.estimates;
-  else return;
+  estimate = estimate.estimates;
 
   let courier_estimate = estimate[courier];
 
@@ -135,7 +136,9 @@ const create_delivery = async (req, res) => {
 
     norm.order_id = rushbox_id;
 
-    await (await ESTIMATES()).deleteOne({ _id: details.estimate_id });
+    await (
+      await ESTIMATES()
+    ).updateOne({ _id: details.estimate_id }, { $set: { used: true } });
 
     return res.json({
       ok: true,
@@ -170,6 +173,8 @@ function normalise_order_response(data, details, courier) {
       latitude: details.dropoff_latitude,
       longitude: details.dropoff_longitude,
     },
+    estimate_id: details.estimate_id,
+    payment_reference: details.payment_reference || "Direct from Wallet.",
     delivery_notes: details.delivery_notes,
     delivery_fare: details.delivery_fare,
     courier: courier.name,

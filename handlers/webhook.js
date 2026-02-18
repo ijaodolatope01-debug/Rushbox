@@ -3,9 +3,7 @@ import {
   EVENT_LOGS,
   PAYMENT_REFS,
   PENDING_DELIVERIES,
-  TRANSACTIONS,
   VIRTUAL_ACCOUNTS,
-  WALLETS,
 } from "../ds/folders.js";
 import { hash } from "./auth.js";
 import { create_delivery } from "./delivery.js";
