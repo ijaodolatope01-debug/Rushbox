@@ -49,6 +49,7 @@ const validateEstimate = async (estimate_id, courier) => {
   console.log(estimate_id, courier);
 
   if (estimate) estimate = estimate.estimates;
+  else return;
 
   let courier_estimate = estimate[courier];
 
