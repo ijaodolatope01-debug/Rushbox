@@ -106,6 +106,7 @@ const create_delivery = async (req, res) => {
       return res.json({ ok: false, message: charge.message });
     }
 
+    details = { ...details, ...estimate.meta };
     // Dispatch courier
     const strategy = courierStrategies[courierName];
     if (!strategy) return res.json({ ok: false, message: "Invalid courier" });
@@ -132,6 +133,8 @@ const create_delivery = async (req, res) => {
     });
 
     norm.order_id = rushbox_id;
+
+    await (await ESTIMATES()).deleteOne({ _id: details.estimate_id });
 
     return res.json({
       ok: true,
