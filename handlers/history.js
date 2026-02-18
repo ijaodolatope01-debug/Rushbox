@@ -1,4 +1,4 @@
-import { ORDERS } from "../ds/folders.js";
+import { ESTIMATES, ORDERS } from "../ds/folders.js";
 import { authenticate_fez } from "./utils/couriers.js";
 
 const get_courier_status = async (order) => {
@@ -24,7 +24,7 @@ const get_courier_status = async (order) => {
             Authorization: `Bearer ${auth?.authDetails?.authToken}`,
             "secret-key": process.env.FEZ_TOKEN,
           },
-        }
+        },
       );
 
       if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
@@ -81,7 +81,7 @@ const get_courier_status = async (order) => {
   } else if (order.courier === "kwikpik") {
     try {
       let res = await fetch(
-        `https://api.kwikpik.io/partners/requests/${order.courier_key}`
+        `https://api.kwikpik.io/partners/requests/${order.courier_key}`,
       );
       res = await res.json();
       if (res?.result) {
@@ -120,7 +120,7 @@ const update_status_of_ongoing_orders = async (user_id) => {
         await ORDERS()
       ).updateOne(
         { _id: order._id },
-        { $set: { status: stat, [stat]: new Date().toISOString() } }
+        { $set: { status: stat, [stat]: new Date().toISOString() } },
       );
     }
   }
@@ -169,14 +169,17 @@ const normalise_order = (o) => {
   nrm.order_id = o._id;
   nrm.created = o.created;
 
-  let delivery_fare = nrm.delivery_fare,
-    charge = delivery_fare > 600 ? 500 : 300;
+  if (nrm.delivery_fare) {
+    let delivery_fare = nrm.delivery_fare,
+      charge = delivery_fare > 600 ? 500 : 300;
 
-  nrm.fare = {
-    original: delivery_fare - charge,
-    charge,
-    total: delivery_fare,
-  };
+    nrm.fare = {
+      original: delivery_fare - charge,
+      charge,
+      total: delivery_fare,
+    };
+  }
+
   delete nrm.delivery_fare;
 
   return nrm;

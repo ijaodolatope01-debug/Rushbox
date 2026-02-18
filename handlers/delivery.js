@@ -44,11 +44,12 @@ const delivery_failed = async (message, details) => {
 };
 
 const validateEstimate = async (estimate_id, courier) => {
-  let estimate = await (
-    await ESTIMATES()
-  ).findOne({ _id: estimate_id, used: false });
+  let estimate = await (await ESTIMATES()).findOne({ _id: estimate_id });
 
-  if (!estimate) return;
+  if (!estimate) return "";
+  else if (estimate.used) {
+    return "Estimate have been used.";
+  }
 
   estimate = estimate.estimates;
 
@@ -77,8 +78,11 @@ const create_delivery = async (req, res) => {
     details.rushbox_id = rushbox_id;
 
     const estimate = await validateEstimate(details.estimate_id, courierName);
-    if (!estimate)
-      return res.json({ ok: false, message: "Courier estimate not found" });
+    if (typeof estimate === "string")
+      return res.json({
+        ok: false,
+        message: estimate || "Courier estimate not found",
+      });
 
     // Handle payment reference
     if (details.payment_reference) {
