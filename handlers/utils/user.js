@@ -20,7 +20,7 @@ const id_exists_ = async (id) => {
 };
 
 const request_otp_ = async (id) => {
-  let otp = generate_random_string(6);
+  let otp = generate_random_string(4);
 
   await send_otp(id, otp);
 
