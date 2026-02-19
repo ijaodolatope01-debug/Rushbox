@@ -48,7 +48,7 @@ const validateEstimate = async (estimate_id, courier) => {
 
   if (!estimate) return "";
   else if (estimate.used) {
-    return "Estimate have been used.";
+    return "Estimate has been used.";
   }
 
   estimate = estimate.estimates;
@@ -62,11 +62,13 @@ const validateEstimate = async (estimate_id, courier) => {
 
 const create_delivery = async (req, res) => {
   try {
-    let courierName, details;
+    let courierName, details, payment_reference;
     if (res) {
       courierName = req.body.courier.toLowerCase();
+      payment_reference = req.body.payment_reference;
       details = req.body.details;
       details.courier = courierName;
+      details.payment_reference = payment_reference;
 
       details.user_id = req.body.user_id;
     } else {
