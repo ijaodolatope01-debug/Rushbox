@@ -37,6 +37,32 @@ const applyCharges = (estimate) => {
   };
 };
 
+let swaps = [
+  ["pick_up_state", "recipient_state"],
+  ["pickup_city", "recipient_city"],
+  ["local_govt", "local_govt"],
+  ["destination_latitude", "dropoff_latitude"],
+  ["destination_longitude", "dropoff_longitude"],
+  ["destination_placeid", "recipient_address"],
+  ["pickup_placeid", "pickup_address"],
+  ["source_longitude", "pickup_longitude", true],
+  ["source_latitude", "pickup_latitude", true],
+];
+
+const swap_payload_key = (payload) => {
+  swaps.map((sp) => {
+    let [i, v, t] = sp;
+    let val = payload[i];
+
+    delete payload[i];
+    if (t) val = Number(val);
+
+    payload[v] = val;
+  });
+
+  return payload;
+};
+
 const fetch_estimates = async (req, res) => {
   const payload = req.body;
 
@@ -62,12 +88,17 @@ const fetch_estimates = async (req, res) => {
     await ESTIMATES()
   ).insertOne({
     _id: estimate_id,
+    payload: swap_payload_key(payload),
     estimates: normalized,
     used: false,
     created: Date.now(),
   });
 
-  res.json({ ok: true, data: { estimates: normalized, _id: estimate_id } });
+  res.json({
+    ok: true,
+    message: "Estimate expires after 1 hour(s)",
+    data: { estimates: normalized, _id: estimate_id },
+  });
 };
 
 export { fetch_estimates, thirty_mins };

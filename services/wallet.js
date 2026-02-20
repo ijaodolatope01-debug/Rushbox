@@ -1,6 +1,6 @@
 import { TRANSACTIONS, WALLETS } from "../ds/folders.js";
 
-async function charge_wallet(user_id, value, order_id) {
+async function charge_wallet(user_id, value, order_id, payment_ref) {
   const Wallets = await WALLETS();
   const wallet = await Wallets.findOne({ _id: user_id });
 
@@ -11,14 +11,18 @@ async function charge_wallet(user_id, value, order_id) {
 
   await Wallets.updateOne({ _id: user_id }, { $inc: { balance: -value } });
 
+  let misc = { order_id };
+  if (payment_ref) misc.payment_ref = payment_ref;
+
   await (
     await TRANSACTIONS(user_id)
   ).insertOne({
     title: "Order creation",
     amount: value,
     wallet: user_id,
+    created: Date.now(),
     _id: crypto.randomUUID(),
-    misc: { order_id },
+    misc,
   });
 
   return { ok: true };
@@ -43,6 +47,7 @@ const credit_wallet = async (wallet, value, { authorization }) => {
     title: "Top-up",
     amount: value,
     wallet,
+    created: Date.now(),
     misc: {
       from: {
         bank: authorization.bank,
@@ -67,10 +72,9 @@ const revert_wallet = async (wallet, value, order_id) => {
     title: "Order reverted",
     amount: value,
     wallet,
+    created: Date.now(),
     misc: {
-      from: {
-        order_id,
-      },
+      order_id,
     },
   });
 };

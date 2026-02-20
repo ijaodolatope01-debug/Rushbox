@@ -67,6 +67,31 @@ async function create_kwikpik(details) {
   let data;
 
   try {
+    let payload = {
+      vehicleType: "motorcycle",
+      deliveryLocation: {
+        latitude: Number(dropoff_latitude),
+        longitude: Number(dropoff_longitude),
+        address: recipient_address,
+      },
+      pickupLocation: {
+        latitude: pickup_latitude,
+        longitude: pickup_longitude,
+        address: pickup_address,
+      },
+      senderName: sender_name,
+      senderEmail: sender_email,
+      senderPhoneNumber: sender_phone,
+      recipientName: recipient_name,
+      recipientPhoneNumber: recipient_phone,
+      description: package_detail,
+      itemCategory: order_name,
+      itemValue: value_of_item,
+      itemWeight: package_weight,
+      itemName: order_name,
+      insured: false,
+    };
+
     const response = await fetch(
       "https://api.kwikpik.io/partners/requests/initiate",
       {
@@ -76,30 +101,7 @@ async function create_kwikpik(details) {
           "Content-Type": "application/json",
           "x-api-key": process.env.KWIKPIK_TOKEN,
         },
-        body: JSON.stringify({
-          vehicleType: "motorcycle",
-          deliveryLocation: {
-            latitude: dropoff_latitude,
-            longitude: dropoff_longitude,
-            address: recipient_address,
-          },
-          pickupLocation: {
-            latitude: pickup_latitude,
-            longitude: pickup_longitude,
-            address: pickup_address,
-          },
-          senderName: sender_name,
-          senderEmail: sender_email,
-          senderPhoneNumber: sender_phone,
-          recipientName: recipient_name,
-          recipientPhoneNumber: recipient_phone,
-          description: package_detail,
-          itemCategory: order_name,
-          itemValue: value_of_item,
-          itemWeight: package_weight,
-          itemName: order_name,
-          insured: false,
-        }),
+        body: JSON.stringify(payload),
       },
     );
 

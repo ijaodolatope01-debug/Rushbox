@@ -5,11 +5,21 @@ const handle_payment_ref = async (payment_reference, delivery_details) => {
   let Refs = await PAYMENT_REFS();
   let ref = await Refs.findOne({ _id: payment_reference });
 
+  console.log(ref, payment_reference);
+
   if (!ref) {
-    await (
-      await PENDING_DELIVERIES()
-    ).insertOne({ _id: payment_reference, delivery_details });
-    return "PENDING";
+    const Pending = await PENDING_DELIVERIES();
+    const result = await Pending.updateOne(
+      { _id: payment_reference },
+      { $setOnInsert: { delivery_details, created: Date.now() } },
+      { upsert: true },
+    );
+
+    // result.upsertedId is set when a new doc was inserted
+    if (result.upsertedId) return "PENDING";
+
+    // If no upsert happened, the document already existed — handle as needed
+    return "ALREADY_PENDING";
   }
 
   await Refs.deleteOne({ _id: payment_reference });
@@ -19,6 +29,8 @@ const handle_payment_ref = async (payment_reference, delivery_details) => {
   let wallet = await credit_wallet(user, ref.amount / 100, {
     authorization: ref.authorization,
   });
+
+  console.log(wallet, "hola");
 
   return wallet;
 };

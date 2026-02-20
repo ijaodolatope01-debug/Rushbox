@@ -49,15 +49,13 @@ const validateEstimate = async (estimate_id, courier) => {
   if (!estimate) return "";
   else if (estimate.used) {
     return "Estimate has been used.";
+  } else if (estimate.created + 60 * 60 * 1000 < Date.now()) {
+    return "Estimate have expired. Fetch again.";
   }
 
-  estimate = estimate.estimates;
+  let courier_estimate = estimate.estimates[courier];
 
-  let courier_estimate = estimate[courier];
-
-  console.log(courier_estimate);
-
-  return courier_estimate;
+  return { courier_estimate, location_details: estimate.payload };
 };
 
 const create_delivery = async (req, res) => {
@@ -79,13 +77,23 @@ const create_delivery = async (req, res) => {
     const rushbox_id = details.rushbox_id || crypto.randomUUID();
     details.rushbox_id = rushbox_id;
 
-    const estimate = await validateEstimate(details.estimate_id, courierName);
+    let estimate = await validateEstimate(details.estimate_id, courierName);
     if (typeof estimate === "string")
-      return res.json({
-        ok: false,
-        message: estimate || "Courier estimate not found",
-      });
+      return (
+        res &&
+        res.json({
+          ok: false,
+          message: estimate || "Courier estimate not found",
+        })
+      );
 
+    details = {
+      ...details,
+      ...estimate.location_details,
+      ...estimate.courier_estimate.meta,
+    };
+
+    estimate = estimate.courier_estimate;
     // Handle payment reference
     if (details.payment_reference) {
       const paymentStatus = await handle_payment_ref(
@@ -93,12 +101,15 @@ const create_delivery = async (req, res) => {
         details,
       );
 
-      if (paymentStatus === "PENDING") {
-        return res.json({
-          ok: false,
-          message: "Pending",
-          data: { order_id: rushbox_id },
-        });
+      if (["PENDING", "ALREADY_PENDING"].includes(paymentStatus)) {
+        return (
+          res &&
+          res.json({
+            ok: false,
+            message: "Pending",
+            data: { order_id: rushbox_id },
+          })
+        );
       }
     }
 
@@ -107,23 +118,24 @@ const create_delivery = async (req, res) => {
       details.user_id,
       estimate.total_price,
       rushbox_id,
+      details.payment_reference,
     );
 
     if (!charge.ok) {
       await delivery_failed(charge.message, details);
-      return res.json({ ok: false, message: charge.message });
+      return res && res.json({ ok: false, message: charge.message });
     }
 
-    details = { ...details, ...estimate.meta };
     // Dispatch courier
     const strategy = courierStrategies[courierName];
-    if (!strategy) return res.json({ ok: false, message: "Invalid courier" });
+    if (!strategy)
+      return res && res.json({ ok: false, message: "Invalid courier" });
 
     const reply = await strategy(details);
 
     if (!reply?.courier_key) {
       await revert_wallet(details.user_id, estimate.total_price, rushbox_id);
-      return res.json({ ok: false, message: "Courier failed" });
+      return res && res.json({ ok: false, message: "Courier failed" });
     }
 
     // Normalize
@@ -145,6 +157,8 @@ const create_delivery = async (req, res) => {
     await (
       await ESTIMATES()
     ).updateOne({ _id: details.estimate_id }, { $set: { used: true } });
+
+    if (!res) return;
 
     return res.json({
       ok: true,
