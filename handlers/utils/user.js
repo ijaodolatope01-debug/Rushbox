@@ -1,10 +1,9 @@
 import { generate_random_string } from "generalised-datastore/utils/functions.js";
 import send_sms from "../send_sms.js";
 import { hash } from "godprotocol/utils/hash.js";
-import { USERS } from "../../ds/folders.js";
+import { USERS, OTPS } from "../../ds/folders.js";
 
-let otps = new Object(),
-  expiry = 30;
+let expiry = 30;
 
 const send_otp = async (id, otp) => {
   console.log("Generated OTP:", otp);
@@ -13,24 +12,27 @@ const send_otp = async (id, otp) => {
   return await send_sms(id, message);
 };
 
-const id_exists_ = async (id) => {
-  let cont = await (await USERS()).findOne({ _id: hash(id) });
+const id_exists_ = async (user_id) => {
+  let cont = await (await USERS()).findOne({ _id: user_id });
 
   return cont;
 };
 
-const request_otp_ = async (id) => {
+const request_otp_ = async (id, user_id) => {
   let otp = generate_random_string(4);
 
   await send_otp(id, otp);
 
-  otps[id] = { otp, ts: Date.now() };
+  let obj = { otp, ts: Date.now(), user_id };
+  await (await OTPS()).insertOne({ _id: id, obj });
 };
 
-const verify_otp_ = (id, otp) => {
+const verify_otp_ = async (id, otp) => {
   if (id === "2347012345678" && String(otp) === "123456") return true;
 
-  let tp = otps[id];
+  let Otps = await OTPS();
+  let obj = await Otps.findOne({ _id: id });
+  let tp = obj?.obj;
   if (tp && tp.ts + expiry * 60 * 1000 < Date.now()) {
     return "expired";
   }
@@ -38,10 +40,10 @@ const verify_otp_ = (id, otp) => {
   let mtch = (tp && tp.otp) === otp;
 
   if (mtch) {
-    delete otps[id];
+    await Otps.deleteOne({ _id: id });
   }
 
-  return mtch;
+  return mtch && tp;
 };
 
 export { verify_otp_, request_otp_, id_exists_, generate_random_string };

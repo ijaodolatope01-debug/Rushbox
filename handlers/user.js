@@ -1,11 +1,11 @@
 import { hash } from "godprotocol/utils/hash.js";
 import { id_exists_, request_otp_, verify_otp_ } from "./utils/user.js";
 import { ORDERS, USERS } from "../ds/folders.js";
+import { handle_bank_account } from "./utils/payment_gateway.js";
 
 const user = async (req, res) => {
   let { _id } = req.params;
 
-  console.log("Fetching user:", _id);
   let usr = await (await USERS()).findOne({ _id });
   let response = {
     ok: !!usr,
@@ -20,18 +20,18 @@ const user = async (req, res) => {
 };
 
 const confirm_delete_account = async (req, res) => {
-  let { id, otp } = req.body;
+  let { user_id, otp } = req.body;
 
-  if (!verify_otp_(id, otp)) {
+  let usr = await id_exists_(user_id);
+
+  if (!usr || !verify_otp_(usr.phone, otp)) {
     return res.json({
       ok: false,
       message: "OTP verification failed",
     });
   }
 
-  let user_id = hash(id);
-
-  let usr = await (await USERS()).deleteOne({ _id: user_id });
+  await (await USERS()).deleteOne({ _id: user_id });
 
   await (await ORDERS()).deleteMany({ user_id });
 
@@ -42,15 +42,16 @@ const confirm_delete_account = async (req, res) => {
 };
 
 const delete_account = async (req, res) => {
-  let { id } = req.body;
+  let { user_id } = req.body;
 
-  if (!(await id_exists_(id))) {
+  let usr = await id_exists_(user_id);
+  if (!usr) {
     return res.json({
       ok: false,
       message: "ID does not exists",
     });
   }
-  await request_otp_(id);
+  await request_otp_(usr.phone);
 
   res.json({
     ok: true,
@@ -59,7 +60,7 @@ const delete_account = async (req, res) => {
 };
 
 const update_profile = async (req, res) => {
-  let { property, _id, value } = req.body;
+  let { property, _id, value, updates } = req.body;
 
   let Users = await USERS();
   let usr = await Users.findOne({ _id });
@@ -75,11 +76,17 @@ const update_profile = async (req, res) => {
     });
   }
 
+  let user = await Users.findOne({ _id });
+
   usr = await Users.findOneAndUpdate(
     { _id },
-    { $set: { [property]: value } },
-    { returnDocument: "after" } // use { returnOriginal: false } for older drivers
+    { $set: updates || { [property]: value } },
+    { returnDocument: "after" }, // use { returnOriginal: false } for older drivers
   );
+
+  if (!user.email && usr.email) {
+    await handle_bank_account(usr);
+  }
 
   res.json({
     ok: true,

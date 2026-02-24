@@ -1,143 +1,95 @@
 import { hash } from "godprotocol/utils/hash.js";
-import {
-  generate_random_string,
-  id_exists_,
-  request_otp_,
-  verify_otp_,
-} from "./utils/user.js";
-import { USERS, VIRTUAL_ACCOUNTS, WALLETS } from "../ds/folders.js";
-import {
-  create_customer,
-  create_virtual_account,
-  fetch_customer,
-} from "./utils/payment_gateway.js";
+import { request_otp_, verify_otp_ } from "./utils/user.js";
+import { USERS } from "../ds/folders.js";
+import { handle_bank_account } from "./utils/payment_gateway.js";
 
-const resend_otp = async (req, res) => {
-  let { id } = req.body;
+const request_otp = async (req, res) => {
+  let { phone, user_id } = req.body;
 
-  id = id.trim();
-
-  if (!(await id_exists_(id))) {
-    return res.json({
-      ok: false,
-      message: "ID does not belong.",
-    });
-  }
-
-  await request_otp_(id);
+  let reslt = await request_otp_(phone, user_id);
 
   res.json({
-    ok: true,
-    message: "OTP has been sent.",
+    ok: ok,
+    message: "OTP have been sent",
+    data: { phone, user_id },
   });
 };
 
-const verify_otp = async (req, res) => {
-  let { id, otp } = req.body;
-  id = id.trim();
+const signin = async (req, res) => {
+  let { code, phone, user_id } = req.body;
 
-  let result = verify_otp_(id, otp),
-    message;
-  if (result === "expired") message = "OTP have expired";
-  else if (result) message = "OTP verification successful";
-  else message = "OTP verification failed";
+  let very = await verify_otp_(phone, code);
 
-  let ok = message === "OTP verification successful";
-  res.json({
-    ok,
-    message,
-    data: (ok && (await id_exists_(id))) || null,
-  });
-};
+  let message;
+  if (very) {
+    if (very === "expired") message = "OTP have expired";
+    else message = "OTP verified successfully";
+  } else message = "OTP verification failed";
 
-const login = async (req, res) => {
-  let { id } = req.body;
-  id = id.trim();
-
-  let exists = await id_exists_(id);
-  if (!exists) {
+  if (message !== "OTP verified successfully") {
     return res.json({
       ok: false,
-      message: "User does not exists",
+      message,
     });
   }
 
-  await request_otp_(id);
+  let Users = await USERS();
+  let usr = await Users.findOne({ phone });
 
-  res.json({
-    ok: true,
-    message: "OTP has been sent",
-  });
-};
-
-const signup = async (req, res) => {
-  let user_data = req.body;
-
-  let id = user_data.phone.trim(),
-    response;
-  let _id = hash(id),
-    Users = await USERS();
-
-  let email_check = await Users.findOne({ email: user_data.email });
-
-  if (email_check)
-    return res.json({
-      ok: false,
-      message: "Email have already been used",
+  if (usr) {
+    res.json({
+      ok: true,
+      message: "User signed-in",
+      data: usr,
     });
+  } else {
+    if (user_id) {
+      let ress = await Users.updateOne(
+        { _id: user_id },
+        { $set: { phone } },
+        { returnDocument: "after" },
+      );
 
-  user_data._id = _id;
-
-  user_data.referral_code = generate_random_string(8, "alpha").toUpperCase();
-
-  let customer = await fetch_customer(user_data.email),
-    ans;
-
-  try {
-    ans = await Users.insertOne(user_data);
-  } catch (error) {
-    ans = { existed: true };
-  }
-
-  if (!ans.existed) {
-    await request_otp_(id);
-
-    if (!customer) {
-      customer = await create_customer(user_data);
+      usr = ress.value || ress;
+      await handle_bank_account(usr);
+    } else {
+      user_id = crypto.randomUUID();
+      usr = { _id: user_id, phone, created: new Date() };
+      await Users.insertOne(usr);
     }
-
-    let response = await create_virtual_account(customer.customer_code);
-    let virtual_account = {
-      number: response.account_number,
-      name: response.account_name,
-      bank: response.bank,
-      customer: customer.customer_code,
-      user: _id,
-      _id: hash(customer.customer_code || "xyz"),
-    };
-    try {
-      await (await VIRTUAL_ACCOUNTS()).insertOne(virtual_account);
-    } catch (e) {}
-
-    let data = {
-      _id,
-      balance: 0,
-      virtual_account: virtual_account._id,
-    };
-    await (await WALLETS()).replaceOne({ _id }, data, { upsert: true });
   }
 
-  response = ans.existed
-    ? {
-        ok: false,
-        message: "Phone has already been used.",
-      }
-    : {
-        ok: true,
-        message: "OTP sent successfully",
-      };
-
-  res.json(response);
+  res.json({
+    ok: true,
+    message: "User signed-in",
+    data: usr,
+  });
 };
 
-export { verify_otp, login, signup, resend_otp, hash };
+const email_signin = async (req, res) => {
+  let { email, firstname, lastname } = req.body;
+
+  email = email?.trim().toLowerCase();
+
+  let Users = await USERS();
+  let usr = await Users({ email });
+
+  if (usr) {
+    return res.json({
+      ok: true,
+      message: "User Email Signin",
+      data: usr,
+    });
+  }
+
+  let _id = crypto.randomUUID();
+  await Users.insertOne({ email, firstname, lastname, _id });
+
+  res.json({
+    ok: true,
+    message: "User Profile created",
+    data: { _id },
+  });
+};
+
+export { email_signin, signin, request_otp, hash };
