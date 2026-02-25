@@ -84,7 +84,14 @@ const email_signin = async (req, res) => {
   }
 
   let _id = crypto.randomUUID();
-  await Users.insertOne({ email, firstname, lastname, _id, is_new: true });
+  await Users.insertOne({
+    email,
+    firstname,
+    lastname,
+    _id,
+    is_new: true,
+    created: new Date(),
+  });
 
   res.json({
     ok: true,

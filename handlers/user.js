@@ -80,7 +80,7 @@ const update_profile = async (req, res) => {
 
   usr = await Users.findOneAndUpdate(
     { _id },
-    { $set: updates || { [property]: value } },
+    { $set: { ...(updates || { [property]: value }), updated: new Date() } },
     { returnDocument: "after" }, // use { returnOriginal: false } for older drivers
   );
 
