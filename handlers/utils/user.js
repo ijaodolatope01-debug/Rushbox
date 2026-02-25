@@ -24,14 +24,14 @@ const request_otp_ = async (id, user_id) => {
   await send_otp(id, otp);
 
   let obj = { otp, ts: Date.now(), user_id };
-  await (await OTPS()).insertOne({ _id: id, obj });
+  await (await OTPS()).insertOne({ _id: crypto.randomUUID(), id, obj });
 };
 
 const verify_otp_ = async (id, otp) => {
   if (id === "2347012345678" && String(otp) === "123456") return true;
 
   let Otps = await OTPS();
-  let obj = await Otps.findOne({ _id: id });
+  let obj = await Otps.findOne({ id });
   let tp = obj?.obj;
   if (tp && tp.ts + expiry * 60 * 1000 < Date.now()) {
     return "expired";
