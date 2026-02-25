@@ -86,6 +86,7 @@ const update_profile = async (req, res) => {
 
   if (!user.email && usr.email) {
     await Users.updateOne({ _id }, { $unset: { is_new: 1 } });
+    delete usr.is_new;
     await handle_bank_account(usr);
   }
 
