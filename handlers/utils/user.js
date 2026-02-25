@@ -32,6 +32,8 @@ const verify_otp_ = async (id, otp) => {
 
   let Otps = await OTPS();
   let obj = await Otps.findOne({ id });
+  console.log(obj);
+
   let tp = obj?.obj;
   if (tp && tp.ts + expiry * 60 * 1000 < Date.now()) {
     return "expired";
@@ -40,7 +42,7 @@ const verify_otp_ = async (id, otp) => {
   let mtch = (tp && tp.otp) === otp;
 
   if (mtch) {
-    await Otps.deleteOne({ _id: id });
+    await Otps.deleteMany({ id });
   }
 
   return mtch && tp;

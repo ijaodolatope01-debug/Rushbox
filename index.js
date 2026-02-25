@@ -2,6 +2,7 @@ import {
   EVENT_LOGS,
   PAYMENT_REFS,
   PENDING_DELIVERIES,
+  OTPS,
   USERS,
   WALLETS,
 } from "./ds/folders.js";
@@ -13,7 +14,7 @@ let server = http.createServer(handler);
 let port = process.env.PORT || 4000;
 
 server.listen(port, "0.0.0.0", async () => {
-  // console.log(await (await USERS()).deleteOne({ phone: "2348148253812" }));
+  // console.log(await (await OTPS()).deleteOne({ id: "2348148253812" }));
   // console.log(
   //   JSON.stringify(await (await EVENT_LOGS()).find().toArray(), null, 2),
   // );

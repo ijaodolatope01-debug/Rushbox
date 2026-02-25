@@ -37,7 +37,7 @@ const signin = async (req, res) => {
   let usr = await Users.findOne({ phone });
 
   if (usr) {
-    res.json({
+    return res.json({
       ok: true,
       message: "User signed-in",
       data: usr,
