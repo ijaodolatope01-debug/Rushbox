@@ -72,7 +72,7 @@ const email_signin = async (req, res) => {
   email = email?.trim().toLowerCase();
 
   let Users = await USERS();
-  let usr = await Users({ email });
+  let usr = await Users.findOne({ email });
 
   if (usr) {
     return res.json({
