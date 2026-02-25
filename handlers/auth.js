@@ -46,7 +46,7 @@ const signin = async (req, res) => {
     if (user_id) {
       let ress = await Users.updateOne(
         { _id: user_id },
-        { $set: { phone } },
+        { $set: { phone }, $unset: { is_new: 1 } },
         { returnDocument: "after" },
       );
 
@@ -83,12 +83,12 @@ const email_signin = async (req, res) => {
   }
 
   let _id = crypto.randomUUID();
-  await Users.insertOne({ email, firstname, lastname, _id });
+  await Users.insertOne({ email, firstname, lastname, _id, is_new: true });
 
   res.json({
     ok: true,
     message: "User Profile created",
-    data: { _id },
+    data: { _id, email, firstname, lastname, is_new: true },
   });
 };
 
