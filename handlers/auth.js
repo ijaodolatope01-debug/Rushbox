@@ -44,13 +44,14 @@ const signin = async (req, res) => {
     });
   } else {
     if (user_id) {
-      let ress = await Users.updateOne(
+      let ress = await Users.findOneAndUpdate(
         { _id: user_id },
         { $set: { phone }, $unset: { is_new: 1 } },
         { returnDocument: "after" },
       );
 
       usr = ress.value || ress;
+      console.log(usr);
       await handle_bank_account(usr);
     } else {
       user_id = crypto.randomUUID();

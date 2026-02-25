@@ -14,9 +14,9 @@ let server = http.createServer(handler);
 let port = process.env.PORT || 4000;
 
 server.listen(port, "0.0.0.0", async () => {
-  console.log(
-    await (await USERS()).deleteOne({ email: "wametrader@gmail.com" }),
-  );
+  // console.log(
+  //   await (await USERS()).deleteOne({ email: "wametrader@gmail.com" }),
+  // );
   // console.log(
   //   JSON.stringify(await (await EVENT_LOGS()).find().toArray(), null, 2),
   // );
