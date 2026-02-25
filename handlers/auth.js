@@ -51,7 +51,6 @@ const signin = async (req, res) => {
       );
 
       usr = ress.value || ress;
-      console.log(usr);
       await handle_bank_account(usr);
     } else {
       user_id = crypto.randomUUID();

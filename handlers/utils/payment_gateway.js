@@ -2,7 +2,6 @@ import { VIRTUAL_ACCOUNTS, WALLETS } from "../../ds/folders.js";
 import { hash } from "../auth.js";
 
 const result = (data) => {
-  console.log(JSON.stringify(data));
   return data.status === true ? data.data : null;
 };
 
