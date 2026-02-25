@@ -10,7 +10,7 @@ const request_otp = async (req, res) => {
 
   res.json({
     ok: true,
-    message: "OTP have been sent",
+    message: "OTP has been sent",
     data: { phone, user_id },
   });
 };
@@ -54,7 +54,7 @@ const signin = async (req, res) => {
       await handle_bank_account(usr);
     } else {
       user_id = crypto.randomUUID();
-      usr = { _id: user_id, phone, created: new Date() };
+      usr = { _id: user_id, phone, created: new Date(), is_new: true };
       await Users.insertOne(usr);
     }
   }
