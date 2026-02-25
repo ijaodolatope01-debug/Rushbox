@@ -18,6 +18,12 @@ const WALLETS = async () => {
   return fold;
 };
 
+const OTPS = async () => {
+  let fold = await DB().collection("Otps");
+
+  return fold;
+};
+
 const VIRTUAL_ACCOUNTS = async () => {
   let fold = await DB().collection("Virtual_Accounts");
 
@@ -64,4 +70,5 @@ export {
   ESTIMATES,
   PENDING_DELIVERIES,
   PAYMENT_REFS,
+  OTPS,
 };
