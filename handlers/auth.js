@@ -9,7 +9,7 @@ const request_otp = async (req, res) => {
   let reslt = await request_otp_(phone, user_id);
 
   res.json({
-    ok: ok,
+    ok: true,
     message: "OTP have been sent",
     data: { phone, user_id },
   });
