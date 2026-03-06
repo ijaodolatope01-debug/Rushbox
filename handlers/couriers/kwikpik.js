@@ -14,6 +14,7 @@ const estimate_kwikpik = async ({
         headers: {
           accept: "application/json",
           "Content-Type": "application/json",
+          "x-api-key": process.env.KWIKPIK_TOKEN,
         },
         body: JSON.stringify({
           insured: false,
@@ -32,6 +33,8 @@ const estimate_kwikpik = async ({
     );
 
     const data = await res.json();
+
+    console.log(data);
     if (!data.result) return null;
 
     return {

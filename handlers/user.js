@@ -1,4 +1,3 @@
-import { hash } from "godprotocol/utils/hash.js";
 import { id_exists_, request_otp_, verify_otp_ } from "./utils/user.js";
 import { ORDERS, USERS } from "../ds/folders.js";
 import { handle_bank_account } from "./utils/payment_gateway.js";
