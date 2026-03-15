@@ -1,3 +1,5 @@
+import update_ongoing_status from "../utils/update_ongoing_status.js";
+
 const estimate_chowdeck = async ({
   source_latitude,
   source_longitude,
@@ -94,4 +96,23 @@ async function create_chowdeck(details) {
   return reply;
 }
 
-export { estimate_chowdeck, create_chowdeck };
+const webhook_chowdeck = async (req, res) => {
+  const hash = crypto
+    .createHmac("sha512", process.env.CHOW_TOKEN)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
+
+  // if (hash != req.headers["x-chowdeck-signature"]) {
+  //   return false;
+  // }
+
+  // Retrieve the request's body
+  const event = req.body;
+  let { status, data } = event;
+
+  let id = data?.tracking?.[0]?.trackingId;
+
+  return await update_ongoing_status(id, status.split(".")[1], "chowdeck");
+};
+
+export { estimate_chowdeck, create_chowdeck, webhook_chowdeck };

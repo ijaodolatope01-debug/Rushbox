@@ -105,4 +105,6 @@ async function create_fez(details) {
   return reply;
 }
 
-export { estimate_fez, create_fez };
+const webhook_fez = async () => {};
+
+export { estimate_fez, create_fez, webhook_fez };

@@ -8,6 +8,57 @@ import {
 import { hash } from "./auth.js";
 import { create_delivery } from "./delivery.js";
 import { credit_wallet } from "../services/wallet.js";
+import { webhook_courier } from "./couriers/index.js";
+import { send_notification } from "./push_noti.js";
+import { STATUSES_MESSAGE } from "./couriers/statuses_map.js";
+
+const courier_webhook = async (req, res) => {
+  let { courier } = req.params;
+
+  let handler = webhook_courier[courier];
+
+  if (!handler) {
+    return res.send(200);
+  }
+
+  let result = await handler(req, res);
+  if (!result) {
+    res.send(403);
+  }
+
+  if (result?.order) {
+    let { user_id, ongoing_status, _id } = result.order;
+    await send_notification(user_id, {
+      title: "Order status",
+      text: STATUSES_MESSAGE[ongoing_status],
+      _id: crypto.randomUUID(),
+      type: "ongoing_order",
+      user_id,
+      data: { order_id: _id },
+    });
+
+    try {
+      await fetch(`https://livechat.rushbox.biz/send_event`, {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          user: user_id,
+          name: "ongoing_order_statud",
+          payload: {
+            order_id: _id,
+            user_id,
+            ongoing_status,
+            time: result.order[ongoing_status],
+          },
+        }),
+      });
+    } catch {}
+  }
+  res.send(200);
+};
 
 const paystack_webhook_events_listener = async (req, res) => {
   let { body } = req;
@@ -55,4 +106,4 @@ const paystack_webhook_events_listener = async (req, res) => {
   } else res.send(403);
 };
 
-export { paystack_webhook_events_listener, credit_wallet };
+export { paystack_webhook_events_listener, credit_wallet, courier_webhook };

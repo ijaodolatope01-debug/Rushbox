@@ -1,4 +1,5 @@
 import { thirty_mins } from "../order_estimate.js";
+import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_dellyman = async ({ pickup_label, destination_label }) => {
   try {
@@ -105,4 +106,24 @@ async function create_dellyman(details) {
   return reply;
 }
 
-export { estimate_dellyman, create_dellyman };
+const webhook_dellyman = async () => {
+  const hash = crypto
+    .createHmac("sha256", process.env.DELLYMAN_TOKEN)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
+
+  const event = req.body;
+  let { status, order } = event;
+
+  if (!status || hash != req.headers["X-Dellyman-Signature"]) {
+    return false;
+  }
+
+  // Retrieve the request's body
+
+  let id = order?.OrderID;
+
+  return await update_ongoing_status(id, order.OrderStatus, "dellyman");
+};
+
+export { estimate_dellyman, create_dellyman, webhook_dellyman };

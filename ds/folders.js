@@ -60,6 +60,12 @@ const PENDING_DELIVERIES = async () => {
   return fold;
 };
 
+const DEVICE_TOKENS = async () => {
+  let fold = await DB().collection("Device_tokens");
+
+  return fold;
+};
+
 export {
   USERS,
   ORDERS,
@@ -71,4 +77,5 @@ export {
   PENDING_DELIVERIES,
   PAYMENT_REFS,
   OTPS,
+  DEVICE_TOKENS,
 };

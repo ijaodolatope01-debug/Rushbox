@@ -1,3 +1,8 @@
+import { ORDERS } from "../../ds/folders";
+import update_ongoing_status from "../utils/update_ongoing_status";
+import STATUSES_MAPS from "./statuses_map";
+import crypto from "crypto"; // added import
+
 const estimate_errandlr = async ({
   pickup_placeid,
   pickup_label,
@@ -103,4 +108,23 @@ async function create_errandlr(details) {
   return reply;
 }
 
-export { estimate_errandlr, create_errandlr };
+const webhook_errandlr = async (req, res) => {
+  const hash = crypto
+    .createHmac("sha512", process.env.ERRANDLR_TOKEN)
+    .update(JSON.stringify(req.body))
+    .digest("hex");
+
+  if (hash != req.headers["x-errandlr-signature"]) {
+    return false;
+  }
+
+  // Retrieve the request's body
+  const event = req.body;
+  let { status, data } = event;
+
+  let id = data?.tracking?.[0]?.trackingId;
+
+  return await update_ongoing_status(id, status.split(".")[1], "errandlr");
+};
+
+export { estimate_errandlr, create_errandlr, webhook_errandlr };

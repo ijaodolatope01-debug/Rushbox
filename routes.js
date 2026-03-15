@@ -9,7 +9,10 @@ import {
   user,
 } from "./handlers/user.js";
 import { deduct, get_wallet, transactions } from "./handlers/wallets.js";
-import { paystack_webhook_events_listener } from "./handlers/webhook.js";
+import {
+  courier_webhook,
+  paystack_webhook_events_listener,
+} from "./handlers/webhook.js";
 
 const router = async (app) => {
   app.get("/user/:_id", user);
@@ -44,6 +47,8 @@ const router = async (app) => {
     "/paystack_webhook_events_listener",
     paystack_webhook_events_listener,
   );
+
+  app.post("/couriers-webhook/:courier", courier_webhook);
 };
 
 export default router;
