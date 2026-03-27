@@ -123,7 +123,31 @@ async function create_kwikpik(details) {
   return reply;
 }
 
-const webhook_kwikpik = async () => {
+const webhook_kwikpik = async (req, res) => {
+  let sig = req.headers["X-KwikPik-Signature"];
+  const [timestampPart, signaturePart] = sig.split(",");
+  const timestamp = timestampPart.split("=")[1];
+  const signature = signaturePart.split("=")[1];
+
+  // Check timestamp is recent (within 5 minutes)
+  const now = Math.floor(Date.now() / 1000);
+  if (Math.abs(now - parseInt(timestamp)) > 300) {
+    return false;
+  }
+
+  const expectedSignature = crypto
+    .createHmac("sha256", secret)
+    .update(`${timestamp}.${JSON.stringify(payload)}`)
+    .digest("hex");
+
+  if (
+    !crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature),
+    )
+  )
+    return false;
+
   let event = req.body;
 
   let { status, trackingId } = event?.data || {};
