@@ -1,3 +1,5 @@
+import update_ongoing_status from "../utils/update_ongoing_status";
+
 const estimate_kwikpik = async ({
   pickup_label,
   destination_label,
@@ -121,6 +123,16 @@ async function create_kwikpik(details) {
   return reply;
 }
 
-const webhook_kwikpik = async () => {};
+const webhook_kwikpik = async () => {
+  let event = req.body;
+
+  let { status, trackingId } = event?.data || {};
+
+  if (!status) {
+    return false;
+  }
+
+  return await update_ongoing_status(trackingId, status, "kwikpik");
+};
 
 export { estimate_kwikpik, create_kwikpik, webhook_kwikpik };
