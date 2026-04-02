@@ -1,4 +1,4 @@
-import update_ongoing_status from "../utils/update_ongoing_status";
+import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_kwikpik = async ({
   pickup_label,
