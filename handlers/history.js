@@ -1,4 +1,4 @@
-import { ESTIMATES, ORDERS } from "../ds/folders.js";
+import { ESTIMATES, ORDERS, REVIEWS } from "../ds/folders.js";
 import { authenticate_fez } from "./utils/couriers.js";
 
 const get_courier_status = async (order) => {
@@ -148,6 +148,17 @@ const history = async (req, res) => {
     return normalise_order(o);
   });
 
+  if (orders.length) {
+    const revColl = await REVIEWS();
+    const ids = orders.map((o) => o.order_id);
+    const revs = await revColl.find({ orderid: { $in: ids } }).toArray();
+    const revMap = revs.reduce((m, r) => {
+      m[r.orderid] = r;
+      return m;
+    }, {});
+    orders = orders.map((o) => ({ ...o, review: revMap[o.order_id] || null }));
+  }
+
   await res.json({
     ok: true,
     data: orders,
@@ -191,11 +202,15 @@ const get_order = async (req, res) => {
   let Orders = await ORDERS();
 
   let order = await Orders.findOne({ _id });
+  if (order) {
+    order = normalise_order(order);
+    order.review = await (await REVIEWS()).findOne({ orderid: _id });
+  }
 
   res.json({
     ok: !!_id,
     message: _id ? "Order retrieved" : "Order not found",
-    data: normalise_order(order) || null,
+    data: order,
   });
 };
 

@@ -5,6 +5,7 @@ import { estimate_errandlr } from "./couriers/errandlr.js";
 import { estimate_fez } from "./couriers/fez.js";
 import { estimate_kwik } from "./couriers/kwik.js";
 import { estimate_kwikpik } from "./couriers/kwikpik.js";
+import { get_courier_ratings } from "./reviews.js";
 
 const thirty_mins = () => {
   return (
@@ -93,6 +94,12 @@ const fetch_estimates = async (req, res) => {
     used: false,
     created: Date.now(),
   });
+
+  for (let k in normalized) {
+    let est = normalized[k];
+
+    normalized[k].ratings = await get_courier_ratings(est.courier);
+  }
 
   res.json({
     ok: true,
