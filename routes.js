@@ -2,6 +2,7 @@ import { email_signin, request_otp, signin } from "./handlers/auth.js";
 import { create_delivery } from "./handlers/delivery.js";
 import { get_order, history } from "./handlers/history.js";
 import { fetch_estimates } from "./handlers/order_estimate.js";
+import { add_review, get_reviews } from "./handlers/reviews.js";
 import {
   confirm_delete_account,
   delete_account,
@@ -37,6 +38,10 @@ const router = async (app) => {
   // History
   app.post("/history", history);
   app.get("/get_order/:_id", get_order);
+
+  // Reviews
+  app.post("/add_review", add_review);
+  app.post("/get_reviews", get_reviews);
 
   // Wallet
   app.post("/deduct_wallet", deduct);
