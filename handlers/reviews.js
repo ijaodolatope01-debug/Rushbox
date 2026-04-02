@@ -28,7 +28,7 @@ const add_review = async (req, res) => {
 };
 
 const get_reviews = async (req, res) => {
-  const { courier, page, limit } = req.body;
+  const { courier, page = 1, limit = 20 } = req.body;
 
   if (!courier) {
     return res.status(400).json({ error: "Courier is required" });
