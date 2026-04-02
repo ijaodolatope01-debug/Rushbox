@@ -66,7 +66,14 @@ const DEVICE_TOKENS = async () => {
   return fold;
 };
 
+const REVIEWS = async () => {
+  let fold = await DB().collection("Reviews");
+
+  return fold;
+};
+
 export {
+  REVIEWS,
   USERS,
   ORDERS,
   WALLETS,
