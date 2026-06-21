@@ -153,7 +153,7 @@ const webhook_kwikpik = async (req, res) => {
 
   let event = req.body;
 
-  console.log(event);
+  console.log(event, "WEBHOOK KWIPK");
   let { status, trackingId } = event?.data || {};
 
   if (!status) {

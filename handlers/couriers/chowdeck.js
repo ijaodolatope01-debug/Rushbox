@@ -90,7 +90,7 @@ async function create_chowdeck(details) {
     reply.courier_key = data?.id;
     reply.courier_response = data;
   } catch (e) {
-    console.log(e);
+    reply.message = e.message;
   }
 
   return reply;
