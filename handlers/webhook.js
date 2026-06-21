@@ -23,7 +23,7 @@ const courier_webhook = async (req, res) => {
 
   let result = await handler(req, res);
   if (!result) {
-    res.send(403);
+    return res.send(403);
   }
 
   if (result?.order) {

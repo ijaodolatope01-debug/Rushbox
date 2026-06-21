@@ -125,7 +125,7 @@ async function create_kwikpik(details) {
 
 const webhook_kwikpik = async (req, res) => {
   let sig = req.headers["x-kwikpik-signature"];
-  console.log(sig, req.headers);
+  // console.log(sig, req.headers);
   if (sig) {
     const [timestampPart, signaturePart] = sig?.split(",");
     const timestamp = timestampPart.split("=")[1];
@@ -153,14 +153,16 @@ const webhook_kwikpik = async (req, res) => {
 
   let event = req.body;
 
-  console.log(event, "WEBHOOK KWIPK");
-  let { status, trackingId } = event?.data || {};
+  // console.log(event, "WEBHOOK KWIPK");
+  // let { status, trackingId } = event?.data || {};
+  let status = event.status || event?.data?.status;
+  let request_id = event.requestId || event?.data?.trackingId;
 
   if (!status) {
     return false;
   }
 
-  return await update_ongoing_status(trackingId, status, "kwikpik");
+  return await update_ongoing_status(request_id, status, "kwikpik");
 };
 
 export { estimate_kwikpik, create_kwikpik, webhook_kwikpik };
