@@ -179,6 +179,8 @@ const normalise_order = (o) => {
   nrm.order_status = o.status;
   nrm.order_id = o._id;
   nrm.created = o.created;
+  nrm.ongoing_status = o.ongoing_status;
+  nrm.tracking = o.tracking;
 
   if (nrm.delivery_fare) {
     let delivery_fare = nrm.delivery_fare,
