@@ -125,7 +125,8 @@ async function create_kwikpik(details) {
 
 const webhook_kwikpik = async (req, res) => {
   let sig = req.headers["X-KwikPik-Signature"];
-  const [timestampPart, signaturePart] = sig.split(",");
+  console.log(sig, req.headers);
+  const [timestampPart, signaturePart] = sig?.split(",");
   const timestamp = timestampPart.split("=")[1];
   const signature = signaturePart.split("=")[1];
 

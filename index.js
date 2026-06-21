@@ -14,17 +14,11 @@ let server = http.createServer(handler);
 let port = process.env.PORT || 4000;
 
 server.listen(port, "0.0.0.0", async () => {
-  // console.log(
-  //   await (await USERS()).deleteOne({ email: "wametrader@gmail.com" }),
-  // );
-  // console.log(
-  //   JSON.stringify(await (await EVENT_LOGS()).find().toArray(), null, 2),
-  // );
   // await (
   //   await WALLETS()
   // ).updateOne(
   //   { _id: "c2ade644bdbd5dda90ddca2279d79fcaac9adb23de31468f233e71c2080b4c1d" },
-  //   { $inc: { balance: 80000 } },
+  //   { $inc: { balance: 8000000 } },
   // );
   console.log(`Rushbox is listening on http://localhost:${port}`);
 });
