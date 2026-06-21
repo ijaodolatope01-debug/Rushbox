@@ -13,9 +13,9 @@ const update_ongoing_status = async (courier_key, status, courier) => {
     ongoing_status,
   };
   if (ongoing_status === 10) {
-    update.order_status = "completed";
+    update.status = "completed";
   } else if (ongoing_status < 0) {
-    update.order_status = "failed";
+    update.status = "failed";
   }
   const result = await Orders.findOneAndUpdate(
     { courier_key },
