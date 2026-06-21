@@ -3,6 +3,7 @@ import STATUSES_MAPS from "../couriers/statuses_map.js";
 
 const update_ongoing_status = async (courier_key, status, courier) => {
   let ongoing_status = STATUSES_MAPS[courier]?.[status.toUpperCase()];
+  console.log(ongoing_status, courier_key, status, courier);
 
   if (!ongoing_status) return false;
 
@@ -15,6 +16,7 @@ const update_ongoing_status = async (courier_key, status, courier) => {
     { returnDocument: "after" }, // return the document after update
   );
 
+  console.log(result, "heyyyyyy");
   if (!result) {
     return {};
   }
