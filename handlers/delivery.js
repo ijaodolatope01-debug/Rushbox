@@ -135,7 +135,10 @@ const create_delivery = async (req, res) => {
 
     if (!reply?.courier_key) {
       await revert_wallet(details.user_id, estimate.total_price, rushbox_id);
-      return res && res.json({ ok: false, message: "Courier failed" });
+      return (
+        res &&
+        res.json({ ok: false, message: reply?.message || "Courier failed" })
+      );
     }
 
     // Normalize

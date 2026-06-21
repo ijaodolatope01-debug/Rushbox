@@ -97,6 +97,8 @@ async function create_fez(details) {
     if (data.status === "Success") {
       reply.courier_response = data;
       reply.courier_key = data.orderNos[reference];
+    } else {
+      reply.message = Object.values(data.orderNos)[0];
     }
   } catch (error) {
     console.error("Error:", error);
