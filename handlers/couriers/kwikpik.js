@@ -124,33 +124,36 @@ async function create_kwikpik(details) {
 }
 
 const webhook_kwikpik = async (req, res) => {
-  let sig = req.headers["X-KwikPik-Signature"];
+  let sig = req.headers["x-kwikpik-signature"];
   console.log(sig, req.headers);
-  const [timestampPart, signaturePart] = sig?.split(",");
-  const timestamp = timestampPart.split("=")[1];
-  const signature = signaturePart.split("=")[1];
+  if (sig) {
+    const [timestampPart, signaturePart] = sig?.split(",");
+    const timestamp = timestampPart.split("=")[1];
+    const signature = signaturePart.split("=")[1];
 
-  // Check timestamp is recent (within 5 minutes)
-  const now = Math.floor(Date.now() / 1000);
-  if (Math.abs(now - parseInt(timestamp)) > 300) {
-    return false;
-  }
+    // Check timestamp is recent (within 5 minutes)
+    const now = Math.floor(Date.now() / 1000);
+    if (Math.abs(now - parseInt(timestamp)) > 300) {
+      return false;
+    }
 
-  const expectedSignature = crypto
-    .createHmac("sha256", secret)
-    .update(`${timestamp}.${JSON.stringify(payload)}`)
-    .digest("hex");
+    const expectedSignature = crypto
+      .createHmac("sha256", secret)
+      .update(`${timestamp}.${JSON.stringify(payload)}`)
+      .digest("hex");
 
-  if (
-    !crypto.timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature),
+    if (
+      !crypto.timingSafeEqual(
+        Buffer.from(signature),
+        Buffer.from(expectedSignature),
+      )
     )
-  )
-    return false;
+      return false;
+  }
 
   let event = req.body;
 
+  console.log(event);
   let { status, trackingId } = event?.data || {};
 
   if (!status) {
