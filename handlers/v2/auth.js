@@ -90,10 +90,6 @@ const signin = async (req) => {
   console.log(response);
   if (response.ok) {
     await Cont_tokens.deleteOne({ _id: val._id });
-
-    if (val?.type === "signup") {
-      await handle_bank_account(response.data, db);
-    }
   }
 
   return response;
