@@ -1,7 +1,7 @@
-import { VIRTUAL_ACCOUNTS, WALLETS } from "../../ds/folders.js";
-import { hash } from "../auth.js";
+import { hash } from "./hash.js";
 
 const result = (data) => {
+  console.log(data, "hey");
   return data.status === true ? data.data : null;
 };
 
@@ -38,6 +38,7 @@ const create_customer = async (user) => {
     },
     data;
 
+  console.log(payload);
   try {
     let response = await fetch("https://api.paystack.co/customer", {
       method: "POST",
@@ -49,6 +50,7 @@ const create_customer = async (user) => {
     });
 
     data = await response.json();
+    console.log(data);
   } catch (error) {
     console.error("Error:", error);
   }
@@ -92,14 +94,15 @@ const update_customer = async (customer, update) => {
   return result(data);
 };
 
-const handle_bank_account = async (user_data) => {
+const handle_bank_account = async (user_data, db) => {
   let _id = user_data._id;
-  let customer = await fetch_customer(user_data.email);
+  let customer = user_data?.email && (await fetch_customer(user_data.email));
   if (!customer) {
     customer = await create_customer(user_data);
+    console.log(customer);
   }
 
-  let response = await create_virtual_account(customer.customer_code);
+  let response = await create_virtual_account(customer?.customer_code);
   let virtual_account = {
     number: response.account_number,
     name: response.account_name,
@@ -109,7 +112,7 @@ const handle_bank_account = async (user_data) => {
     _id: hash(customer.customer_code),
   };
   try {
-    await (await VIRTUAL_ACCOUNTS()).insertOne(virtual_account);
+    await (await db.folder("Virtual_accounts")).insertOne(virtual_account);
   } catch (e) {}
 
   let data = {
@@ -117,7 +120,9 @@ const handle_bank_account = async (user_data) => {
     balance: 0,
     virtual_account: virtual_account._id,
   };
-  await (await WALLETS()).replaceOne({ _id }, data, { upsert: true });
+  await (
+    await db.folder("Wallets")
+  ).replaceOne({ _id }, data, { upsert: true });
 };
 
 export {

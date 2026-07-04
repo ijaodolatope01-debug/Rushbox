@@ -1,4 +1,4 @@
-import { REVIEWS } from "../ds/folders.js";
+import { REVIEWS } from "../../ds/folders.js";
 
 const get_courier_ratings = async (courier) => {
   if (!courier) {

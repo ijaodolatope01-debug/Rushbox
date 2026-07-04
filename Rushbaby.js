@@ -1,37 +1,21 @@
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import { fileURLToPath } from "url";
-import path from "path";
-
 import dotenv from "dotenv";
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import GodProtocol from "godprotocol";
 
-// import rushbox from "./machines/rushbox.js";
+import router from "./routes/index.js";
+import services from "./services/index.js";
 
-import router from "./routes.js";
-import { hash } from "godprotocol/utils/hash.js";
-import test_router from "./tests/routes.js";
-
-const app = express();
-
-app.use(cors());
-app.use(express.static(`${__dirname}/assets`));
-app.use(bodyParser.urlencoded({ extended: true, limit: "100mb" }));
-app.use(bodyParser.json({ limit: "100mb" }));
-
-app.get("/", (req, res) => {
-  res.send("Welcome to Rushbox API");
+let gp = new GodProtocol({
+  platform_uri: process.env.PLATFORM_URI,
+  api_key: process.env.API_KEY,
+  db_config: {
+    db_name: "rushbox",
+    db_url: process.env.MONGODB_URI,
+  },
 });
 
-router(app);
-test_router(app);
+router(gp);
+gp.load_services(services);
 
-// let manager = await rushbox({ __dirname, app });
-
-// export default manager.handler;
-export default app;
-// export { manager };
+export default gp.on_request;

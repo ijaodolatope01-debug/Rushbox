@@ -1,5 +1,5 @@
-import { ESTIMATES, ORDERS, REVIEWS } from "../ds/folders.js";
-import { authenticate_fez } from "./utils/couriers.js";
+import { ESTIMATES, ORDERS, REVIEWS } from "../../ds/folders.js";
+import { authenticate_fez } from "../../libs/utils/couriers.js";
 
 const get_courier_status = async (order) => {
   let status = "ongoing";

@@ -1,7 +1,5 @@
-import { TRANSACTIONS, WALLETS } from "../ds/folders.js";
-
-async function charge_wallet(user_id, value, order_id, payment_ref) {
-  const Wallets = await WALLETS();
+async function charge_wallet(user_id, value, order_id, payment_ref, db) {
+  const Wallets = await db.folder("Wallets");
   const wallet = await Wallets.findOne({ _id: user_id });
 
   if (!wallet) return { ok: false, message: "Wallet not found" };
@@ -15,7 +13,7 @@ async function charge_wallet(user_id, value, order_id, payment_ref) {
   if (payment_ref) misc.payment_ref = payment_ref;
 
   await (
-    await TRANSACTIONS(user_id)
+    await db.folder("Transactions")
   ).insertOne({
     title: "Order creation",
     amount: value,
@@ -28,9 +26,9 @@ async function charge_wallet(user_id, value, order_id, payment_ref) {
   return { ok: true };
 }
 
-const credit_wallet = async (wallet, value, { authorization }) => {
+const credit_wallet = async (wallet, value, { authorization, db }) => {
   // update and return the updated wallet document
-  const Wallets = await WALLETS();
+  const Wallets = await db.folder("Wallets");
   const updated = await Wallets.findOneAndUpdate(
     { _id: wallet },
     { $inc: { balance: value } },
@@ -41,7 +39,7 @@ const credit_wallet = async (wallet, value, { authorization }) => {
   if (!updated.value) return null;
 
   await (
-    await TRANSACTIONS(wallet)
+    await db.folder("Transactions")
   ).insertOne({
     _id: crypto.randomUUID(),
     title: "Top-up",
@@ -60,13 +58,13 @@ const credit_wallet = async (wallet, value, { authorization }) => {
   return updated.value;
 };
 
-const revert_wallet = async (wallet, value, order_id) => {
+const revert_wallet = async (wallet, value, order_id, db) => {
   await (
-    await WALLETS()
+    await db.folder("Wallets")
   ).updateOne({ _id: wallet }, { $inc: { balance: value } });
 
   await (
-    await TRANSACTIONS(wallet)
+    await db.folder("Transactions")
   ).insertOne({
     _id: crypto.randomUUID(),
     title: "Order reverted",

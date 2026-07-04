@@ -1,7 +1,7 @@
-import { ESTIMATES, ORDERS } from "../ds/folders.js";
-import { courierStrategies } from "./couriers/index.js";
-import { handle_payment_ref } from "../services/payment.js";
-import { charge_wallet, revert_wallet } from "../services/wallet.js";
+import { ESTIMATES, ORDERS } from "../../ds/folders.js";
+import { courierStrategies } from "../../libs/couriers/index.js";
+import { handle_payment_ref } from "../../services/payment.js";
+import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 
 const DELIVERY_STATUSES = ["ongoing", "completed", "canceled", "failed"];
 

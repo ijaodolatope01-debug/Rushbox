@@ -1,4 +1,4 @@
-import { TRANSACTIONS, VIRTUAL_ACCOUNTS, WALLETS } from "../ds/folders.js";
+import { TRANSACTIONS, VIRTUAL_ACCOUNTS, WALLETS } from "../../ds/folders.js";
 
 const get_wallet = async (req, res) => {
   let { user_id } = req.params;
@@ -50,7 +50,7 @@ const deduct = async (req, res) => {
     message: "Balance updated succesfully",
     data: await Wallet.updateOne(
       { _id: wallet },
-      { $inc: { balance: -amount } }
+      { $inc: { balance: -amount } },
     ),
   });
 };

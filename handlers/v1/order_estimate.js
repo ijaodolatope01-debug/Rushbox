@@ -1,10 +1,10 @@
-import { ESTIMATES } from "../ds/folders.js";
-import { estimate_chowdeck } from "./couriers/chowdeck.js";
-import { estimate_dellyman } from "./couriers/dellyman.js";
-import { estimate_errandlr } from "./couriers/errandlr.js";
-import { estimate_fez } from "./couriers/fez.js";
-import { estimate_kwik } from "./couriers/kwik.js";
-import { estimate_kwikpik } from "./couriers/kwikpik.js";
+import { ESTIMATES } from "../../ds/folders.js";
+import { estimate_chowdeck } from "../../libs/couriers/chowdeck.js";
+import { estimate_dellyman } from "../../libs/couriers/dellyman.js";
+import { estimate_errandlr } from "../../libs/couriers/errandlr.js";
+import { estimate_fez } from "../../libs/couriers/fez.js";
+import { estimate_kwik } from "../../libs/couriers/kwik.js";
+import { estimate_kwikpik } from "../../libs/couriers/kwikpik.js";
 import { get_courier_ratings } from "./reviews.js";
 
 const thirty_mins = () => {

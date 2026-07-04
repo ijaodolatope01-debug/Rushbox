@@ -1,14 +1,11 @@
-import { PAYMENT_REFS, PENDING_DELIVERIES } from "../ds/folders.js";
 import { credit_wallet } from "./wallet.js";
 
-const handle_payment_ref = async (payment_reference, delivery_details) => {
-  let Refs = await PAYMENT_REFS();
+const handle_payment_ref = async (payment_reference, delivery_details, db) => {
+  let Refs = await db.folder("Payment_refs");
   let ref = await Refs.findOne({ _id: payment_reference });
 
-  console.log(ref, payment_reference);
-
   if (!ref) {
-    const Pending = await PENDING_DELIVERIES();
+    const Pending = await db.folder("Pending_deliveries");
     const result = await Pending.updateOne(
       { _id: payment_reference },
       { $setOnInsert: { delivery_details, created: Date.now() } },
@@ -28,9 +25,8 @@ const handle_payment_ref = async (payment_reference, delivery_details) => {
 
   let wallet = await credit_wallet(user, ref.amount / 100, {
     authorization: ref.authorization,
+    db,
   });
-
-  console.log(wallet, "hola");
 
   return wallet;
 };

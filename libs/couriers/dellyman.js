@@ -1,4 +1,4 @@
-import { thirty_mins } from "../order_estimate.js";
+import { thirty_mins } from "../estimates.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_dellyman = async ({ pickup_label, destination_label }) => {

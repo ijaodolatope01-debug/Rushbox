@@ -1,6 +1,4 @@
 import { generate_random_string } from "generalised-datastore/utils/functions.js";
-import send_sms from "../send_sms.js";
-import { hash } from "godprotocol/utils/hash.js";
 import { USERS, OTPS } from "../../ds/folders.js";
 
 let expiry = 30;
@@ -9,7 +7,7 @@ const send_otp = async (id, otp) => {
   console.log("Generated OTP:", otp);
 
   const message = `Your verification code is ${otp}. It will expire in ${expiry} minutes.`;
-  return await send_sms(id, message);
+  // return await send_sms(id, message);
 };
 
 const id_exists_ = async (user_id) => {

@@ -1,7 +1,7 @@
-import { hash } from "godprotocol/utils/hash.js";
-import { request_otp_, verify_otp_ } from "./utils/user.js";
-import { USERS } from "../ds/folders.js";
-import { handle_bank_account } from "./utils/payment_gateway.js";
+import { request_otp_, verify_otp_ } from "../../libs/utils/user.js";
+import { USERS } from "../../ds/folders.js";
+import { handle_bank_account } from "../../libs/utils/payment_gateway.js";
+import { hash } from "../../libs/utils/hash.js";
 
 const request_otp = async (req, res) => {
   let { phone, user_id } = req.body;

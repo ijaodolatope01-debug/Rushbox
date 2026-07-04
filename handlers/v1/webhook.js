@@ -4,13 +4,13 @@ import {
   PAYMENT_REFS,
   PENDING_DELIVERIES,
   VIRTUAL_ACCOUNTS,
-} from "../ds/folders.js";
-import { hash } from "./auth.js";
+} from "../../ds/folders.js";
 import { create_delivery } from "./delivery.js";
-import { credit_wallet } from "../services/wallet.js";
-import { webhook_courier } from "./couriers/index.js";
+import { credit_wallet } from "../../services/wallet.js";
+import { webhook_courier } from "../../libs/couriers/index.js";
 import { send_notification } from "./push_noti.js";
-import { STATUSES_MESSAGE } from "./couriers/statuses_map.js";
+import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
+import { hash } from "./auth.js";
 
 const courier_webhook = async (req, res) => {
   let { courier } = req.params;

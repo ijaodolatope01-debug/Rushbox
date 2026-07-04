@@ -1,6 +1,6 @@
-import { id_exists_, request_otp_, verify_otp_ } from "./utils/user.js";
+import { id_exists_, request_otp_, verify_otp_ } from "../libs/utils/user.js";
 import { ORDERS, USERS } from "../ds/folders.js";
-import { handle_bank_account } from "./utils/payment_gateway.js";
+import { handle_bank_account } from "../libs/utils/payment_gateway.js";
 
 const user = async (req, res) => {
   let { _id } = req.params;
