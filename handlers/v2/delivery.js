@@ -14,6 +14,7 @@ const create_delivery = async (req, opts) => {
   let res = !from_webhook;
   if (res) {
     db = req.db;
+    req.body.user_id = req.headers.profile?._id;
   }
   try {
     let courierName, details, payment_reference;
@@ -28,6 +29,12 @@ const create_delivery = async (req, opts) => {
     } else {
       details = req;
       courierName = details.courier;
+    }
+    if (!details.user_id) {
+      return {
+        ok: false,
+        message: "user_id is not found",
+      };
     }
 
     const rushbox_id = details.rushbox_id || crypto.randomUUID();
