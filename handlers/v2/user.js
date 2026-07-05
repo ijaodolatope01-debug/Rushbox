@@ -59,7 +59,7 @@ const delete_account = async (req, res) => {
 };
 
 const update_profile = async (req, res) => {
-  let { property, _id, value, updates } = req.body;
+  let { property, value, updates } = req.body;
 
   let Users = await USERS();
   let usr = await Users.findOne({ _id });

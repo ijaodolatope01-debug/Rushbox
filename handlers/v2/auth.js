@@ -183,7 +183,7 @@ const retrieve_keys = async (req) => {
 };
 
 const delete_key = async (req) => {
-  let { headers, services } = req;
+  let { headers, services, body } = req;
   let { profile, authorization } = headers;
   let { name } = body;
 
