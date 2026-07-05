@@ -33,7 +33,7 @@ const create_delivery = async (req, opts) => {
     const rushbox_id = details.rushbox_id || crypto.randomUUID();
     details.rushbox_id = rushbox_id;
 
-    let estimate = await validateEstimate(details.estimate_id, courierName);
+    let estimate = await validateEstimate(details.estimate_id, courierName, db);
     if (typeof estimate === "string")
       return {
         ok: false,
