@@ -1,4 +1,5 @@
 import {
+  delivery_failed,
   DELIVERY_STATUSES,
   normalise_order_response,
   store_delivery,
