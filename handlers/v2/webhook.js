@@ -1,16 +1,10 @@
 import crypto from "crypto";
-import {
-  EVENT_LOGS,
-  PAYMENT_REFS,
-  PENDING_DELIVERIES,
-  VIRTUAL_ACCOUNTS,
-} from "../ds/folders.js";
 import { hash } from "./auth.js";
 import { create_delivery } from "./delivery.js";
-import { credit_wallet } from "../services/wallet.js";
-import { webhook_courier } from "../libs/couriers/index.js";
+import { credit_wallet } from "../../services/wallet.js";
+import { webhook_courier } from "../../libs/couriers/index.js";
 import { send_notification } from "./push_noti.js";
-import { STATUSES_MESSAGE } from "../libs/couriers/statuses_map.js";
+import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 
 const courier_webhook = async (req) => {
   let { params } = req;
@@ -78,7 +72,7 @@ const paystack_webhook_events_listener = async (req) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
-  await (await EVENT_LOGS()).insertOne(body);
+  await (await db.folder("Event_logs")).insertOne(body);
 
   if ([test_hash_, hash_].includes(req.headers["x-paystack-signature"])) {
     if (body.event === "charge.success") {

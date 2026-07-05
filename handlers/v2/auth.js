@@ -144,7 +144,7 @@ const update_email = async (req) => {
 
   if (res.ok) {
     if (!profile.email) {
-      await handle_bank_account(res.data);
+      await handle_bank_account(res.data, db);
     }
   }
 

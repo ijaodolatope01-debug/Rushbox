@@ -1,7 +1,6 @@
 import { hash } from "./hash.js";
 
 const result = (data) => {
-  console.log(data, "hey");
   return data.status === true ? data.data : null;
 };
 
@@ -32,13 +31,12 @@ const create_virtual_account = async (customer) => {
 const create_customer = async (user) => {
   let payload = {
       email: user.email,
-      first_name: user.firstname,
-      last_name: user.lastname,
+      first_name: user.firstname || "Rushbox",
+      last_name: user.lastname || "Rushbox",
       phone: `+${user.phone}`,
     },
     data;
 
-  console.log(payload);
   try {
     let response = await fetch("https://api.paystack.co/customer", {
       method: "POST",
@@ -50,7 +48,6 @@ const create_customer = async (user) => {
     });
 
     data = await response.json();
-    console.log(data);
   } catch (error) {
     console.error("Error:", error);
   }
@@ -99,7 +96,6 @@ const handle_bank_account = async (user_data, db) => {
   let customer = user_data?.email && (await fetch_customer(user_data.email));
   if (!customer) {
     customer = await create_customer(user_data);
-    console.log(customer);
   }
 
   let response = await create_virtual_account(customer?.customer_code);
