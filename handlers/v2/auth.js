@@ -95,37 +95,59 @@ const signin = async (req) => {
   return response;
 };
 
-const email_signin = async (req, res) => {
-  let { email, firstname, lastname } = req.body;
+const email_signin = async (req) => {
+  let { db, body, services } = req;
+  let { social } = body;
 
-  // email = email?.trim().toLowerCase();
-
-  // let Users = await USERS();
-  // let usr = await Users.findOne({ email });
-
-  // if (usr) {
-  //   return res.json({
-  //     ok: true,
-  //     message: "User Email Signin",
-  //     data: usr,
-  //   });
-  // }
-
-  // let _id = crypto.randomUUID();
-  // await Users.insertOne({
-  //   email,
-  //   firstname,
-  //   lastname,
-  //   _id,
-  //   is_new: true,
-  //   created: new Date(),
-  // });
-
-  res.json({
-    ok: true,
-    message: "User Profile created",
-    data: { _id, email, firstname, lastname, is_new: true },
+  let Profile = await services("profiles");
+  let res = await Profile.call("signup", {
+    social,
+    profile_type: process.env.USER_PROFILE_TYPE,
+    password: process.env.RUSHBOX_DEFAULT_PASSWORD,
   });
+
+  return res;
+};
+
+const update_phone = async (req) => {
+  let { headers, db, body, services } = req;
+  let { phone } = body;
+
+  let Profile = await services("profiles");
+  let res = await Profile.call(
+    "update_profile_identity",
+    {
+      identity: { phone },
+    },
+    { token: headers.authorization },
+  );
+
+  if (res.ok) {
+    let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+
+    await Rus_continuation_token.updateOne(
+      {
+        phone,
+      },
+      {
+        $set: {
+          type,
+          data: response.data,
+        },
+        $setOnInsert: {
+          _id: crypto.randomUUID(),
+          created: Date.now(),
+        },
+      },
+      { upsert: true },
+    );
+  }
+
+  return {
+    ok: res.ok,
+    message: res.message,
+    data: { phone },
+  };
 };
 
 const update_email = async (req) => {
@@ -151,7 +173,28 @@ const update_email = async (req) => {
   return res;
 };
 
-const update_phone = async (req) => {};
+const confirm_phone_update = async (req) => {
+  let { headers, db, services, body } = req;
+  let { phone, code } = body;
+
+  let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+  let tok = await Rus_continuation_token.findOne({ phone });
+
+  if (!tok) {
+    return {
+      ok: false,
+      message: "No token",
+    };
+  }
+
+  let Profile = await services("profiles");
+  let res = await Profile.call("confirm_update_profile_identity", {
+    continuation_token: tok?.data?.continuation_token,
+    otp: code,
+  });
+
+  return res;
+};
 
 const create_api_key = async (req) => {
   let { headers, services, body } = req;
@@ -203,4 +246,5 @@ export {
   create_api_key,
   retrieve_keys,
   delete_key,
+  confirm_phone_update,
 };

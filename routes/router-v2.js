@@ -1,10 +1,12 @@
 import {
+  confirm_phone_update,
   create_api_key,
   delete_key,
   request_otp,
   retrieve_keys,
   signin,
   update_email,
+  update_phone,
 } from "../handlers/v2/auth.js";
 import { create_delivery } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
@@ -67,6 +69,25 @@ const router = {
     schema: {
       body: {
         name: { type: "string", required: true },
+      },
+    },
+  },
+  update_phone: {
+    handler: update_phone,
+    security: "auth_token",
+    schema: {
+      body: {
+        phone: { type: "string", required: true },
+      },
+    },
+  },
+  confirm_phone_update: {
+    handler: confirm_phone_update,
+    security: "auth_token",
+    schema: {
+      body: {
+        phone: { type: "string", required: true },
+        code: { type: "string", required: true },
       },
     },
   },
