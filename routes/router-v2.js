@@ -2,6 +2,7 @@ import {
   confirm_phone_update,
   create_api_key,
   delete_key,
+  email_signin,
   request_otp,
   retrieve_keys,
   signin,
@@ -33,6 +34,19 @@ const router = {
     schema: {
       body: {
         phone: { type: "string", required: true },
+      },
+    },
+  },
+
+  email_signin: {
+    handler: email_signin,
+    security: "api_key",
+    schema: {
+      body: {
+        social: {
+          type: "object",
+          required: true,
+        },
       },
     },
   },
