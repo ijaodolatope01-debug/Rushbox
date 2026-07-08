@@ -193,6 +193,10 @@ const confirm_phone_update = async (req) => {
     otp: code,
   });
 
+  if (res.ok) {
+    await handle_bank_account(res.data, db);
+  }
+
   return res;
 };
 
