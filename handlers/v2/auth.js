@@ -24,8 +24,6 @@ const request_otp = async (req) => {
         },
       });
 
-  console.log(response, "ok");
-
   if (!response.ok) {
     if (
       response.message === "Invalid credentials" ||
@@ -41,8 +39,6 @@ const request_otp = async (req) => {
       });
     }
   }
-
-  console.log(response);
 
   if (response.ok) {
     await Rus_continuation_token.updateOne(
@@ -76,7 +72,6 @@ const signin = async (req) => {
   let Cont_tokens = await db.folder("Rus:continuation_tokens");
   let val = await Cont_tokens.findOne({ phone });
 
-  console.log(val);
   let Profile = await services("profiles");
   let response = await Profile.call(
     val?.type === "signin" ? "two_factor_signin" : "two_factor_signup",
@@ -87,7 +82,6 @@ const signin = async (req) => {
     },
   );
 
-  console.log(response);
   if (response.ok) {
     await Cont_tokens.deleteOne({ _id: val._id });
   }
@@ -176,6 +170,7 @@ const update_email = async (req) => {
 const confirm_phone_update = async (req) => {
   let { headers, db, services, body } = req;
   let { phone, code } = body;
+  let { profile } = headers;
 
   let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
   let tok = await Rus_continuation_token.findOne({
@@ -202,7 +197,7 @@ const confirm_phone_update = async (req) => {
     },
   );
 
-  if (res.ok) {
+  if (res.ok && !profile?.phone) {
     await handle_bank_account(res.data, db);
   }
 

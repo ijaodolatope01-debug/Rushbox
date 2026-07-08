@@ -21,6 +21,8 @@ const create_virtual_account = async (customer) => {
       body: JSON.stringify(payload),
     });
     res = await res.json();
+
+    // console.log(res, "okkk");
   } catch (e) {
     console.log(e);
   }
@@ -36,6 +38,8 @@ const create_customer = async (user) => {
       phone: `+${user.phone}`,
     },
     data;
+
+  // console.log(payload, "ohhhh");
 
   try {
     let response = await fetch("https://api.paystack.co/customer", {
@@ -94,6 +98,7 @@ const update_customer = async (customer, update) => {
 const handle_bank_account = async (user_data, db) => {
   let _id = user_data._id;
   let customer = user_data?.email && (await fetch_customer(user_data.email));
+  // console.log(customer, "custom");
   if (!customer) {
     customer = await create_customer(user_data);
   }
