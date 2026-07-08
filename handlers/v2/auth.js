@@ -128,10 +128,10 @@ const update_phone = async (req) => {
     await Rus_continuation_token.updateOne(
       {
         phone,
+        type: "update_identity",
       },
       {
         $set: {
-          type,
           data: res.data,
         },
         $setOnInsert: {
@@ -178,7 +178,10 @@ const confirm_phone_update = async (req) => {
   let { phone, code } = body;
 
   let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
-  let tok = await Rus_continuation_token.findOne({ phone });
+  let tok = await Rus_continuation_token.findOne({
+    phone,
+    type: "update_identity",
+  });
 
   if (!tok) {
     return {
