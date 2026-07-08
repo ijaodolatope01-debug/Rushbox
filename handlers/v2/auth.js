@@ -191,10 +191,16 @@ const confirm_phone_update = async (req) => {
   }
 
   let Profile = await services("profiles");
-  let res = await Profile.call("confirm_update_profile_identity", {
-    continuation_token: tok?.data?.continuation_token,
-    otp: code,
-  });
+  let res = await Profile.call(
+    "confirm_update_profile_identity",
+    {
+      continuation_token: tok?.data?.continuation_token,
+      otp: code,
+    },
+    {
+      token: headers.authorization,
+    },
+  );
 
   if (res.ok) {
     await handle_bank_account(res.data, db);
