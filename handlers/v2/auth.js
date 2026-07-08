@@ -30,7 +30,8 @@ const request_otp = async (req) => {
   if (!response.ok) {
     if (
       response.message === "Invalid credentials" ||
-      response.message === "is signup"
+      response.message === "is signup" ||
+      response.message?.includes("already in use")
     ) {
       type = "signup";
       response = await Profile.call("signup", {
