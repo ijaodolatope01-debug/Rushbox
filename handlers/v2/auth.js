@@ -51,10 +51,10 @@ const request_otp = async (req) => {
     await Rus_continuation_token.updateOne(
       {
         phone,
+        type,
       },
       {
         $set: {
-          type,
           data: response.data,
         },
         $setOnInsert: {
@@ -89,7 +89,7 @@ const signin = async (req) => {
     },
   );
 
-  if (response.ok) {
+  if (response.ok && val) {
     await Cont_tokens.deleteOne({ _id: val._id });
   }
 
@@ -204,9 +204,17 @@ const confirm_phone_update = async (req) => {
     },
   );
 
-  if (res.ok && !profile?.phone) {
-    await handle_bank_account(res.data, db);
+  if (res.ok) {
+    await Rus_continuation_token.deleteOne({
+      _id: tok._id,
+    });
+
+    if (!profile?.phone) {
+      await handle_bank_account(res.data, db);
+    }
   }
+
+  return res;
 
   return res;
 };
