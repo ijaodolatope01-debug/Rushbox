@@ -18,6 +18,9 @@ const request_otp = async (req) => {
     ? { ok: false, message: "is signup" }
     : await Profile.call("signin", {
         profile_type: process.env.USER_PROFILE_TYPE,
+        meta_payload: {
+          channel: "phone",
+        },
         credentials: {
           phone,
           password: process.env.RUSHBOX_DEFAULT_PASSWORD,
@@ -34,6 +37,9 @@ const request_otp = async (req) => {
         profile_type: process.env.USER_PROFILE_TYPE,
         details: {
           phone,
+        },
+        meta_payload: {
+          channel: "phone",
         },
         password: process.env.RUSHBOX_DEFAULT_PASSWORD,
       });
