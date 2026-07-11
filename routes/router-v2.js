@@ -20,6 +20,9 @@ const router = {
   user: {
     handler: user,
     security: "auth_token",
+    schema: {
+      body: {},
+    },
   },
   // Auth routes
   signin: {
