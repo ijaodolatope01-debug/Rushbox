@@ -124,7 +124,7 @@ const router = {
     handler: history,
     security: "auth_token",
     schema: {
-      query: {
+      body: {
         status: { type: "string" },
         limit: { type: "number", default_value: 20 },
         page: { type: "number", default_value: 1 },
