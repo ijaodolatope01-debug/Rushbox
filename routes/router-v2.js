@@ -13,9 +13,14 @@ import { create_delivery } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
 import { add_review, get_reviews } from "../handlers/v2/reviews.js";
+import { user } from "../handlers/v2/user.js";
 import { get_wallet, transactions } from "../handlers/v2/wallets.js";
 
 const router = {
+  user: {
+    handler: user,
+    security: "auth_token",
+  },
   // Auth routes
   signin: {
     handler: signin,
