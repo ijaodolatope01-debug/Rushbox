@@ -13,7 +13,11 @@ import { create_delivery } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
 import { add_review, get_reviews } from "../handlers/v2/reviews.js";
-import { user } from "../handlers/v2/user.js";
+import {
+  confirm_delete_account,
+  delete_account,
+  user,
+} from "../handlers/v2/user.js";
 import { get_wallet, transactions } from "../handlers/v2/wallets.js";
 
 const router = {
@@ -22,6 +26,21 @@ const router = {
     security: "auth_token",
     schema: {
       body: {},
+    },
+  },
+  delete_account: {
+    handler: delete_account,
+    security: "auth_token",
+    schema: { body: {} },
+  },
+  confirm_delete_account: {
+    handler: confirm_delete_account,
+    security: "auth_token",
+    schema: {
+      body: {
+        phone: { type: "string", required: true },
+        code: { type: "string", required: true },
+      },
     },
   },
   // Auth routes

@@ -5,6 +5,7 @@ import GodProtocol from "godprotocol";
 
 import router from "./routes/index.js";
 import services from "./services/index.js";
+import services_config, { gp_services_config } from "./services.config.js";
 
 let gp = new GodProtocol({
   platform_uri: process.env.PLATFORM_URI,
@@ -13,9 +14,9 @@ let gp = new GodProtocol({
     db_name: "rushbox",
     db_url: process.env.MONGODB_URI,
   },
+  capabilities: gp_services_config,
 });
 
-router(gp);
-gp.load_services(services);
+router(gp, { services_config });
 
 export default gp.on_request;

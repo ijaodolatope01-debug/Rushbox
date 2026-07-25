@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js"
+    "start": "node --import=dotenv/config index.js"
   },
   "author": "savvy",
   "license": "ISC",
@@ -20,7 +20,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "firebase-admin": "^13.7.0",
-    "godprotocol": "^2.3.15",
+    "godprotocol": "^2.3.38",
     "net": "^1.0.2",
     "nodemailer": "^7.0.6",
     "socket-io": "^1.0.0"

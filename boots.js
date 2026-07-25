@@ -6,9 +6,9 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  let Coll = await db.collection("Rus:continuation_tokens");
+  let Coll = await db.collection("$CACHE-auth");
 
-  console.log(await Coll.deleteMany({ phone }));
+  console.log(await Coll.deleteMany({}));
 };
 
 export { boots };

@@ -215,8 +215,6 @@ const confirm_phone_update = async (req) => {
   }
 
   return res;
-
-  return res;
 };
 
 const create_api_key = async (req) => {

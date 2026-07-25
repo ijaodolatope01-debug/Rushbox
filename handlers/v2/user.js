@@ -8,45 +8,98 @@ const user = async (req) => {
   };
 };
 
-// const confirm_delete_account = async (req, res) => {
-//   let { user_id, otp } = req.body;
+const confirm_delete_account = async (req) => {
+  let { headers, db, services, body } = req;
+  let { phone, code } = body;
+  let { profile } = headers;
 
-//   let usr = await id_exists_(user_id);
+  console.log(phone, code);
 
-//   if (!usr || !verify_otp_(usr.phone, otp)) {
-//     return res.json({
-//       ok: false,
-//       message: "OTP verification failed",
-//     });
-//   }
+  let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+  let tok = await Rus_continuation_token.findOne({
+    phone,
+    type: "delete_profile",
+  });
 
-//   await (await USERS()).deleteOne({ _id: user_id });
+  console.log(tok);
+  if (!tok) {
+    return {
+      ok: false,
+      message: "No token",
+    };
+  }
 
-//   await (await ORDERS()).deleteMany({ user_id });
+  let Profile = await services("profiles");
+  let res = await Profile.call(
+    "confirm_delete_profile",
+    {
+      continuation_token: tok?.data?.continuation_token,
+      otp: code,
+    },
+    {
+      token: headers.authorization,
+    },
+  );
 
-//   res.json({
-//     ok: !!usr,
-//     message: usr ? "Account successfully deleted" : "Account not found",
-//   });
-// };
+  if (res.ok) {
+    await Rus_continuation_token.deleteOne({
+      _id: tok._id,
+    });
 
-// const delete_account = async (req, res) => {
-//   let { user_id } = req.body;
+    if (!profile?.phone) {
+      // await handle_bank_account(res.data, db);
+    }
+  }
 
-//   let usr = await id_exists_(user_id);
-//   if (!usr) {
-//     return res.json({
-//       ok: false,
-//       message: "ID does not exists",
-//     });
-//   }
-//   await request_otp_(usr.phone);
+  await (
+    await db.folder("$CACHE-auth")
+  ).deleteOne({
+    type: "third_party",
+    authorization: headers.authorization.replace("Bearer", ""),
+  });
 
-//   res.json({
-//     ok: true,
-//     message: "Verify OTP",
-//   });
-// };
+  return res;
+};
+
+const delete_account = async (req) => {
+  let { headers, db, services } = req;
+  let { profile } = headers;
+
+  let Profile = await services("profiles");
+  let res = await Profile.call(
+    "delete_profile",
+    {},
+    { token: headers.authorization },
+  );
+
+  console.log(res, "howw");
+  if (res.ok) {
+    let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+
+    await Rus_continuation_token.updateOne(
+      {
+        phone: profile.phone,
+        type: "delete_profile",
+      },
+      {
+        $set: {
+          data: res.data,
+        },
+        $setOnInsert: {
+          _id: crypto.randomUUID(),
+          created: Date.now(),
+        },
+      },
+      { upsert: true },
+    );
+  }
+
+  return {
+    ok: res.ok,
+    message: res.message,
+    data: {},
+  };
+};
 
 // const update_profile = async (req, res) => {
 //   let { property, value, updates } = req.body;
@@ -86,4 +139,4 @@ const user = async (req) => {
 //   });
 // };
 
-export { user };
+export { user, delete_account, confirm_delete_account };
