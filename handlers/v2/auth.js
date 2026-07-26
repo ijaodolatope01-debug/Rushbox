@@ -1,4 +1,5 @@
 import { handle_bank_account } from "../../libs/utils/payment_gateway.js";
+import { generate_random_string } from "../../libs/utils/user.js";
 import { hash } from "../v1/auth.js";
 
 const request_otp = async (req) => {
@@ -38,6 +39,8 @@ const request_otp = async (req) => {
         profile_type: process.env.USER_PROFILE_TYPE,
         details: {
           phone,
+          referral_code: generate_random_string(5, "alnum").toUpperCase(),
+          avatar: 1,
         },
         meta_payload: {
           channel: "phone",
