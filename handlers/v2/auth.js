@@ -65,6 +65,7 @@ const request_otp = async (req) => {
       { upsert: true },
     );
   }
+
   return {
     ok: response.ok || false,
     message: response.message,
@@ -79,11 +80,17 @@ const signin = async (req) => {
   let Cont_tokens = await db.folder("Rus:continuation_tokens");
   let val = await Cont_tokens.findOne({ phone });
 
+  if (!val) {
+    return {
+      ok: false,
+      message: "Code not found",
+    };
+  }
   let Profile = await services("profiles");
   let response = await Profile.call(
     val?.type === "signin" ? "two_factor_signin" : "two_factor_signup",
     {
-      continuation_token: val.data.continuation_token,
+      continuation_token: val?.data?.continuation_token,
       otp: code,
       profile_type: process.env.USER_PROFILE_TYPE,
     },
@@ -124,7 +131,9 @@ const update_phone = async (req) => {
   );
 
   if (res.ok) {
-    let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+    let Rus_continuation_token = await db.folder(
+      "Rus:continuation_tokens:update_identity",
+    );
 
     await Rus_continuation_token.updateOne(
       {
@@ -179,10 +188,11 @@ const confirm_phone_update = async (req) => {
   let { phone, code } = body;
   let { profile } = headers;
 
-  let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+  let Rus_continuation_token = await db.folder(
+    "Rus:continuation_tokens:update_identity",
+  );
   let tok = await Rus_continuation_token.findOne({
     phone,
-    type: "update_identity",
   });
 
   if (!tok) {

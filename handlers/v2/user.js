@@ -13,12 +13,11 @@ const confirm_delete_account = async (req) => {
   let { phone, code } = body;
   let { profile } = headers;
 
-  console.log(phone, code);
-
-  let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+  let Rus_continuation_token = await db.folder(
+    "Rus:continuation_tokens:delete_profile",
+  );
   let tok = await Rus_continuation_token.findOne({
     phone,
-    type: "delete_profile",
   });
 
   console.log(tok);
@@ -46,17 +45,17 @@ const confirm_delete_account = async (req) => {
       _id: tok._id,
     });
 
+    await (
+      await db.folder("$CACHE-auth")
+    ).deleteOne({
+      profile_id: profile._id,
+      type: "third_party",
+    });
+
     if (!profile?.phone) {
       // await handle_bank_account(res.data, db);
     }
   }
-
-  await (
-    await db.folder("$CACHE-auth")
-  ).deleteOne({
-    type: "third_party",
-    authorization: headers.authorization.replace("Bearer", ""),
-  });
 
   return res;
 };
@@ -74,12 +73,13 @@ const delete_account = async (req) => {
 
   console.log(res, "howw");
   if (res.ok) {
-    let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
+    let Rus_continuation_token = await db.folder(
+      "Rus:continuation_tokens:delete_profile",
+    );
 
     await Rus_continuation_token.updateOne(
       {
         phone: profile.phone,
-        type: "delete_profile",
       },
       {
         $set: {
