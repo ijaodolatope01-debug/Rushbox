@@ -6,9 +6,14 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  let Coll = await db.collection("$CACHE-auth");
+  let Coll = await db.collection("Wallets");
 
-  console.log(await Coll.deleteMany({}));
+  console.log(
+    await Coll.findOne(
+      { _id: "ec562f63-c295-408a-9d70-b070aa310612" },
+      // { $set: { balance: 500_000_000_000 } },
+    ),
+  );
 };
 
 export { boots };

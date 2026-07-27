@@ -109,13 +109,17 @@ const create_delivery = async (req, opts) => {
     });
 
     // Persist
-    await store_delivery(reply, {
-      ...details,
-      norm,
-      courier: courierName,
-      rushbox_id,
+    await store_delivery(
+      reply,
+      {
+        ...details,
+        norm,
+        courier: courierName,
+        rushbox_id,
+      },
+      null,
       db,
-    });
+    );
 
     norm.order_id = rushbox_id;
 
