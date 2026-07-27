@@ -2,6 +2,8 @@ import { handle_bank_account } from "../../libs/utils/payment_gateway.js";
 import { generate_random_string } from "../../libs/utils/user.js";
 import { hash } from "../v1/auth.js";
 
+const CONTINUATION_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
+
 const request_otp = async (req) => {
   let { body, db, services } = req;
   let { phone } = body;
@@ -14,7 +16,9 @@ const request_otp = async (req) => {
     phone,
     type: "signup",
   });
+
   let type = "signin";
+
   let response = is_signup
     ? { ok: false, message: "is signup" }
     : await Profile.call("signin", {
@@ -35,6 +39,7 @@ const request_otp = async (req) => {
       response.message?.includes("already in use")
     ) {
       type = "signup";
+
       response = await Profile.call("signup", {
         profile_type: process.env.USER_PROFILE_TYPE,
         details: {
@@ -59,6 +64,8 @@ const request_otp = async (req) => {
       {
         $set: {
           data: response.data,
+          updated: Date.now(),
+          expiresAt: new Date(Date.now() + CONTINUATION_TOKEN_TTL),
         },
         $setOnInsert: {
           _id: crypto.randomUUID(),
@@ -81,6 +88,7 @@ const signin = async (req) => {
   let { code, phone } = body;
 
   let Cont_tokens = await db.folder("Rus:continuation_tokens");
+
   let val = await Cont_tokens.findOne({ phone });
 
   if (!val) {
@@ -89,28 +97,33 @@ const signin = async (req) => {
       message: "Code not found",
     };
   }
+
   let Profile = await services("profiles");
+
   let response = await Profile.call(
-    val?.type === "signin" ? "two_factor_signin" : "two_factor_signup",
+    val.type === "signin" ? "two_factor_signin" : "two_factor_signup",
     {
-      continuation_token: val?.data?.continuation_token,
+      continuation_token: val.data.continuation_token,
       otp: code,
       profile_type: process.env.USER_PROFILE_TYPE,
     },
   );
 
-  if (response.ok && val) {
-    await Cont_tokens.deleteOne({ _id: val._id });
+  if (response.ok) {
+    await Cont_tokens.deleteOne({
+      _id: val._id,
+    });
   }
 
   return response;
 };
 
 const email_signin = async (req) => {
-  let { db, body, services } = req;
+  let { body, services } = req;
   let { social } = body;
 
   let Profile = await services("profiles");
+
   let res = await Profile.call("signup", {
     social,
     profile_type: process.env.USER_PROFILE_TYPE,
@@ -125,12 +138,17 @@ const update_phone = async (req) => {
   let { phone } = body;
 
   let Profile = await services("profiles");
+
   let res = await Profile.call(
     "update_profile_identity",
     {
-      identity: { phone },
+      identity: {
+        phone,
+      },
     },
-    { token: headers.authorization },
+    {
+      token: headers.authorization,
+    },
   );
 
   if (res.ok) {
@@ -146,20 +164,26 @@ const update_phone = async (req) => {
       {
         $set: {
           data: res.data,
+          updated: Date.now(),
+          expiresAt: new Date(Date.now() + CONTINUATION_TOKEN_TTL),
         },
         $setOnInsert: {
           _id: crypto.randomUUID(),
           created: Date.now(),
         },
       },
-      { upsert: true },
+      {
+        upsert: true,
+      },
     );
   }
 
   return {
     ok: res.ok,
     message: res.message,
-    data: { phone },
+    data: {
+      phone,
+    },
   };
 };
 
@@ -169,12 +193,15 @@ const update_email = async (req) => {
   let { social } = body;
 
   let Profile = await services("profiles");
+
   let res = await Profile.call(
     "update_social_identity",
     {
       social,
     },
-    { token: authorization },
+    {
+      token: authorization,
+    },
   );
 
   if (res.ok) {
@@ -194,6 +221,7 @@ const confirm_phone_update = async (req) => {
   let Rus_continuation_token = await db.folder(
     "Rus:continuation_tokens:update_identity",
   );
+
   let tok = await Rus_continuation_token.findOne({
     phone,
   });
@@ -206,10 +234,11 @@ const confirm_phone_update = async (req) => {
   }
 
   let Profile = await services("profiles");
+
   let res = await Profile.call(
     "confirm_update_profile_identity",
     {
-      continuation_token: tok?.data?.continuation_token,
+      continuation_token: tok.data.continuation_token,
       otp: code,
     },
     {
@@ -232,7 +261,7 @@ const confirm_phone_update = async (req) => {
 
 const create_api_key = async (req) => {
   let { headers, services, body } = req;
-  let { profile, authorization } = headers;
+  let { authorization } = headers;
   let { name } = body;
 
   let res = await (
@@ -242,31 +271,43 @@ const create_api_key = async (req) => {
     {
       name,
     },
-    { token: authorization },
+    {
+      token: authorization,
+    },
   );
 
   return res;
 };
 
 const retrieve_keys = async (req) => {
-  let { headers, services, body } = req;
-  let { profile, authorization } = headers;
+  let { headers, services } = req;
+  let { authorization } = headers;
 
   let res = await (
     await services("profiles")
-  ).call("retrieve_profile_keys", null, { token: authorization });
+  ).call("retrieve_profile_keys", null, {
+    token: authorization,
+  });
 
   return res;
 };
 
 const delete_key = async (req) => {
   let { headers, services, body } = req;
-  let { profile, authorization } = headers;
+  let { authorization } = headers;
   let { name } = body;
 
   let res = await (
     await services("profiles")
-  ).call("revoke_profile_key", { name }, { token: authorization });
+  ).call(
+    "revoke_profile_key",
+    {
+      name,
+    },
+    {
+      token: authorization,
+    },
+  );
 
   return res;
 };

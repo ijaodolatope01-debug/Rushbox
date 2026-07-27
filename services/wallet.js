@@ -2,7 +2,6 @@ async function charge_wallet(user_id, value, order_id, payment_ref, db) {
   const Wallets = await db.folder("Wallets");
   const wallet = await Wallets.findOne({ _id: user_id });
 
-  console.log(user_id, wallet);
   if (!wallet) return { ok: false, message: "Wallet not found" };
 
   if (wallet.balance < value)
