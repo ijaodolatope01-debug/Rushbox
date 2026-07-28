@@ -120,12 +120,13 @@ const signin = async (req) => {
 
 const email_signin = async (req) => {
   let { body, services } = req;
-  let { social } = body;
+  let { social, details } = body;
 
   let Profile = await services("profiles");
 
   let res = await Profile.call("signup", {
     social,
+    details,
     profile_type: process.env.USER_PROFILE_TYPE,
     password: process.env.RUSHBOX_DEFAULT_PASSWORD,
   });
