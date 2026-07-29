@@ -19,6 +19,7 @@ import {
   user,
 } from "../handlers/v2/user.js";
 import { get_wallet, transactions } from "../handlers/v2/wallets.js";
+import { paystack_webhook_events_listener } from "../handlers/v2/webhook.js";
 
 const router = {
   user: {
@@ -222,6 +223,13 @@ const router = {
         limit: { type: "number", default_value: 20 },
       },
     },
+  },
+
+  // Webhooks
+  paystack_webhook_events_listener: {
+    handler: paystack_webhook_events_listener,
+    security: "none",
+    schema: { body: {} },
   },
 };
 
