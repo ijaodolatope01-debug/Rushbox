@@ -9,7 +9,11 @@ import {
   update_email,
   update_phone,
 } from "../handlers/v2/auth.js";
-import { create_delivery, get_payment_url } from "../handlers/v2/delivery.js";
+import {
+  create_delivery,
+  get_payment_url,
+  retrieve_order_by_reference,
+} from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
 import { add_review, get_reviews } from "../handlers/v2/reviews.js";
@@ -153,6 +157,15 @@ const router = {
       body: {
         estimate_id: { type: "string", required: true },
         delivery_details: { type: "object", required: true },
+      },
+    },
+  },
+  retrieve_order_by_reference: {
+    handler: retrieve_order_by_reference,
+    security: "auth_token",
+    schema: {
+      body: {
+        payment_reference: { type: "string", required: true },
       },
     },
   },
