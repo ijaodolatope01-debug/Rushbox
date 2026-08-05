@@ -91,7 +91,11 @@ const paystack_webhook_events_listener = async (req) => {
       } else {
         await (
           await db.folder("Payment_refs")
-        ).insertOne({ _id: body.data.reference, ...body.data });
+        ).updateOne(
+          { _id: body.data.reference },
+          { $set: body.data },
+          { upsert: true },
+        );
 
         let Pending_deliveries = await db.folder("Pending_deliveries");
         let exists = await Pending_deliveries.findOne({
