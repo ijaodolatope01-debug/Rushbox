@@ -133,10 +133,13 @@ const paystack_webhook_events_listener = async (req) => {
             "Creating delivery from pending delivery",
             exists.delivery_details,
           );
-          await create_delivery(exists.delivery_details, {
-            db,
-            from_webhook: true,
-          });
+          await create_delivery(
+            { ...exists.delivery_details, profile: exists.profile },
+            {
+              db,
+              from_webhook: true,
+            },
+          );
         }
       }
     }
