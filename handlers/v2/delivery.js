@@ -115,8 +115,6 @@ const create_delivery = async (req, opts) => {
   }
   try {
     let courierName, details, payment_reference;
-    let details;
-    let courierName;
 
     if (res) {
       courierName = req.body.courier.toLowerCase();
