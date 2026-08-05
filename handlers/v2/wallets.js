@@ -31,10 +31,12 @@ const transactions = async (req) => {
 
   let txs = await db.folder("Transactions");
 
+  let skip = (page - 1) / limit;
+
   let data = await txs
     .find({ wallet })
     .sort({ created: -1 })
-    .skip((page - 1) * limit)
+    .skip(skip)
     .limit(limit)
     .toArray();
 
@@ -45,7 +47,7 @@ const transactions = async (req) => {
     message: "Transactions retrieved",
     data,
     pagination: {
-      page: skip / limit + 1,
+      page: skip + 1,
       pages: Math.ceil(total / limit),
       skip,
       limit,

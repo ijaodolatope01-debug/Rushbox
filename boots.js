@@ -6,13 +6,17 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  let Coll = await db.collection("Wallets");
+  const latest = await (await db.collection("Event_logs"))
+    .find()
+    .sort({ _id: -1 })
+    .limit(1)
+    .next();
+  console.log(latest);
 
   console.log(
-    await Coll.findOne(
-      { _id: "577e9125-d8a9-4f6e-9372-f177a982685b" },
-      { $set: { balance: 500_000 } },
-    ),
+    await (
+      await db.collection("Payment_refs")
+    ).findOne({ _id: "a699d03f-e6dd-456c-99ea-c8848dede3fc" }),
   );
 };
 

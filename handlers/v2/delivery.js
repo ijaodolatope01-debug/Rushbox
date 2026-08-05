@@ -97,7 +97,7 @@ const retrieve_order_by_reference = async (req) => {
     });
 
   return {
-    ok: data || order,
+    ok: !!(data || order),
     message: data ? "Order pending" : order ? "Order retrieved" : "Not found",
     data: data || order,
   };
@@ -105,23 +105,37 @@ const retrieve_order_by_reference = async (req) => {
 
 const create_delivery = async (req, opts) => {
   let { from_webhook, db } = opts || {};
+
+  // from_webhook=true: called from webhook (no response sent), false: regular API request (response sent)
   let res = !from_webhook;
+
   if (res) {
     db = req.db;
     req.body.user_id = req.headers.profile?._id;
   }
   try {
     let courierName, details, payment_reference;
+    let details;
+    let courierName;
+
     if (res) {
       courierName = req.body.courier.toLowerCase();
-      payment_reference = req.body.payment_reference;
-      details = req.body.details;
-      details.courier = courierName;
-      details.payment_reference = payment_reference;
 
-      details.user_id = req.body.user_id;
+      details = {
+        ...req.body.details,
+        courier: courierName,
+        payment_reference: req.body.payment_reference,
+        user_id: req.body.user_id,
+      };
     } else {
-      details = req;
+      const pending = req;
+
+      details = {
+        ...pending.delivery_details,
+        ...pending.delivery_details.details,
+        user_id: pending.profile,
+      };
+
       courierName = details.courier;
     }
     if (!details.user_id) {

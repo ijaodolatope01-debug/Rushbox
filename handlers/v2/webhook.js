@@ -72,7 +72,8 @@ const paystack_webhook_events_listener = async (req) => {
     .update(JSON.stringify(body))
     .digest("hex");
 
-  await (await db.folder("Event_logs")).insertOne(body);
+  const EventLogs = await db.folder("Event_logs");
+  await EventLogs.insertOne(body);
 
   if ([test_hash_, hash_].includes(req.headers["x-paystack-signature"])) {
     if (body.event === "charge.success") {
@@ -98,7 +99,10 @@ const paystack_webhook_events_listener = async (req) => {
         });
 
         if (exists) {
-          await create_delivery(exists.delivery_details, { db });
+          await create_delivery(exists.delivery_details, {
+            db,
+            from_webhook: true,
+          });
         }
       }
     }
