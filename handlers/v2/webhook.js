@@ -74,21 +74,43 @@ const paystack_webhook_events_listener = async (req) => {
 
   const EventLogs = await db.folder("Event_logs");
   await EventLogs.insertOne(body);
+  console.log("Paystack webhook body inserted", {
+    event: body.event,
+    reference: body.data?.reference,
+  });
+
+  console.log("Paystack signature check", {
+    received: req.headers["x-paystack-signature"],
+    expected: [test_hash_, hash_],
+  });
 
   if ([test_hash_, hash_].includes(req.headers["x-paystack-signature"])) {
+    console.log("Paystack signature valid", body.event);
     if (body.event === "charge.success") {
+      console.log("Processing charge.success", body.data.reference);
       let customer = body.data.customer;
       let customer_hash = hash(customer.customer_code);
+      console.log("Customer code hash", customer_hash);
       let virtual_account = await (
         await db.folder("Virtual_accounts")
       ).findOne({ _id: customer_hash });
+      console.log("Virtual account lookup", {
+        found: !!virtual_account,
+        virtual_account_id: virtual_account?._id,
+      });
 
       let value = body.data.amount / 100;
+      console.log("Charge amount converted", value);
       if (virtual_account) {
+        console.log("Crediting wallet", { user: virtual_account.user, value });
         await credit_wallet(virtual_account.user, value, {
           authorization: body.data.authorization,
         });
       } else {
+        console.log(
+          "No virtual account found, saving payment ref",
+          body.data.reference,
+        );
         await (
           await db.folder("Payment_refs")
         ).updateOne(
@@ -101,8 +123,16 @@ const paystack_webhook_events_listener = async (req) => {
         let exists = await Pending_deliveries.findOne({
           _id: body.data.reference,
         });
+        console.log("Pending delivery check", {
+          reference: body.data.reference,
+          exists: !!exists,
+        });
 
         if (exists) {
+          console.log(
+            "Creating delivery from pending delivery",
+            exists.delivery_details,
+          );
           await create_delivery(exists.delivery_details, {
             db,
             from_webhook: true,
