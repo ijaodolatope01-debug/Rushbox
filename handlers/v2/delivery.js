@@ -129,8 +129,8 @@ const create_delivery = async (req, opts) => {
       const pending = req;
 
       details = {
-        ...pending.delivery_details,
-        ...pending.delivery_details.details,
+        ...pending,
+        ...pending?.details,
         user_id: pending.profile,
       };
 

@@ -106,8 +106,15 @@ const paystack_webhook_events_listener = async (req) => {
         }
       }
     }
-    res.send(200);
-  } else res.send(403);
+    return {
+      status: 200,
+      ok: true,
+    };
+  } else
+    return {
+      status: 403,
+      ok: false,
+    };
 };
 
 export { paystack_webhook_events_listener, credit_wallet, courier_webhook };
