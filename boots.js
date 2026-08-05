@@ -8,12 +8,12 @@ const boots = async () => {
 
   let Coll = await db.collection("Wallets");
 
-  // console.log(
-  //   await Coll.findOne(
-  //     { _id: "ec562f63-c295-408a-9d70-b070aa310612" },
-  //     // { $set: { balance: 500_000_000_000 } },
-  //   ),
-  // );
+  console.log(
+    await Coll.findOne(
+      { _id: "577e9125-d8a9-4f6e-9372-f177a982685b" },
+      { $set: { balance: 500_000 } },
+    ),
+  );
 };
 
 export { boots };

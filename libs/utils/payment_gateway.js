@@ -21,8 +21,6 @@ const create_virtual_account = async (customer) => {
       body: JSON.stringify(payload),
     });
     res = await res.json();
-
-    // console.log(res, "okkk");
   } catch (e) {
     console.log(e);
   }

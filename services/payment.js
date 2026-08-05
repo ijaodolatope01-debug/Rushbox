@@ -31,4 +31,42 @@ const handle_payment_ref = async (payment_reference, delivery_details, db) => {
   return wallet;
 };
 
-export { handle_payment_ref };
+async function initializePaystackTransaction({
+  email,
+  amount,
+  reference,
+  callbackUrl,
+  metadata = {},
+}) {
+  const response = await fetch(
+    "https://api.paystack.co/transaction/initialize",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        amount, // Amount in the smallest currency unit (e.g. Kobo)
+        reference,
+        callback_url: callbackUrl,
+        metadata,
+      }),
+    },
+  );
+
+  const data = await response.json();
+
+  console.log(data, "paystack transaction initialization response");
+
+  if (!response.ok || !data.status) {
+    throw new Error(
+      data.message || "Failed to initialize Paystack transaction",
+    );
+  }
+
+  return data.data;
+}
+
+export { handle_payment_ref, initializePaystackTransaction };
