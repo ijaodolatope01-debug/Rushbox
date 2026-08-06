@@ -65,6 +65,8 @@ async function create_fez(details) {
   let reply = {};
   let data;
 
+  reference = reference || crypto.randomUUID();
+
   try {
     const auth = await authenticate_fez();
 

@@ -18,6 +18,14 @@ const get_payment_url = async (req) => {
   let { profile } = headers;
   let { delivery_details, estimate_id } = body;
 
+  const senderEmail = delivery_details?.details?.sender_email;
+  if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+    return {
+      ok: false,
+      message: "Invalid sender email",
+    };
+  }
+
   let estimate = await validateEstimate(
     estimate_id,
     delivery_details.courier,

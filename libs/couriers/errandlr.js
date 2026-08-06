@@ -47,8 +47,8 @@ async function create_errandlr(details) {
     dropoff_latitude,
     dropoff_longitude,
     pickup_notes,
-    order_number,
     order_name,
+    order_number,
     recipient_phone,
     package_detail,
     delivery_notes,
@@ -79,7 +79,7 @@ async function create_errandlr(details) {
         pickupNotes: pickup_notes,
         deliverToInformation: [
           {
-            order: order_number,
+            order: 1,
             name: order_name,
             phone: recipient_phone,
             packageDetail: package_detail,

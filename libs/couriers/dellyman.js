@@ -51,6 +51,7 @@ async function create_dellyman(details) {
   let reply = {};
   let data;
 
+  reference = reference || crypto.randomUUID();
   try {
     const res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
       method: "POST",
@@ -61,7 +62,7 @@ async function create_dellyman(details) {
       },
       body: JSON.stringify({
         OrderRef: reference,
-        CompanyID: company_id || 643,
+        CompanyID: 643,
         PaymentMode: "online",
         Vehicle: "Bike",
         PickUpContactName: sender_name,
