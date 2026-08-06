@@ -16,7 +16,7 @@ import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 const get_payment_url = async (req) => {
   let { db, headers, body } = req;
   let { profile } = headers;
-  let { delivery_details, estimate_id } = body;
+  let { delivery_details, estimate_id, product_price } = body;
 
   const senderEmail = delivery_details?.details?.sender_email;
   if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
@@ -62,7 +62,7 @@ const get_payment_url = async (req) => {
 
   const response = await initializePaystackTransaction({
     email,
-    amount: estimate.total_price * 100, // Convert to kobo
+    amount: (product_price + estimate.total_price) * 100, // Convert to kobo
     reference: payment_reference,
     metadata: {
       user_id,

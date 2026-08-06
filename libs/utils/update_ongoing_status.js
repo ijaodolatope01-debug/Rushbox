@@ -1,5 +1,5 @@
 import { ORDERS } from "../../ds/folders.js";
-import STATUSES_MAPS from "../couriers/statuses_map.js";
+import STATUSES_MAPS, { STATUSES_MESSAGE } from "../couriers/statuses_map.js";
 
 const update_ongoing_status = async (courier_key, status, courier) => {
   let ongoing_status = STATUSES_MAPS[courier]?.[status.toUpperCase()];
@@ -22,7 +22,11 @@ const update_ongoing_status = async (courier_key, status, courier) => {
     {
       $set: update,
       $push: {
-        tracking: [ongoing_status, Date.now()],
+        tracking: [
+          ongoing_status,
+          Date.now(),
+          STATUSES_MESSAGE[ongoing_status],
+        ],
       },
     },
     { returnDocument: "after" },

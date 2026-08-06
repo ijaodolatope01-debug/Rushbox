@@ -157,6 +157,7 @@ const router = {
       body: {
         estimate_id: { type: "string", required: true },
         delivery_details: { type: "object", required: true },
+        product_price: { type: "number", default_value: 0 },
       },
     },
   },
