@@ -18,6 +18,7 @@ const get_payment_url = async (req) => {
   let { profile } = headers;
   let { delivery_details, estimate_id, product_price } = body;
 
+  console.log(estimate_id, product_price, "HOWWWW");
   const senderEmail = delivery_details?.details?.sender_email;
   if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
     return {
