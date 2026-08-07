@@ -1,6 +1,6 @@
 import { authenticate_fez } from "../utils/couriers.js";
 
-const estimate_fez = async ({
+let estimate_fez = async ({
   package_weight,
   pick_up_state,
   destination_state,
@@ -20,7 +20,7 @@ const estimate_fez = async ({
 
     auth = await auth.json();
 
-    const res = await fetch("https://apisandbox.fezdelivery.co/v1/order/cost", {
+    let res = await fetch("https://apisandbox.fezdelivery.co/v1/order/cost", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,7 +34,7 @@ const estimate_fez = async ({
       }),
     });
 
-    const data = await res.json();
+    let data = await res.json();
     console.log(data);
     if (data.status !== "Success") return null;
 
@@ -49,7 +49,7 @@ const estimate_fez = async ({
 };
 
 async function create_fez(details) {
-  const {
+  let {
     recipient_address,
     recipient_state,
     recipient_name,
@@ -68,9 +68,9 @@ async function create_fez(details) {
   reference = reference || crypto.randomUUID();
 
   try {
-    const auth = await authenticate_fez();
+    let auth = await authenticate_fez();
 
-    const response = await fetch("https://apisandbox.fezdelivery.co/v1/order", {
+    let response = await fetch("https://apisandbox.fezdelivery.co/v1/order", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,6 +109,6 @@ async function create_fez(details) {
   return reply;
 }
 
-const webhook_fez = async () => {};
+let webhook_fez = async () => {};
 
 export { estimate_fez, create_fez, webhook_fez };

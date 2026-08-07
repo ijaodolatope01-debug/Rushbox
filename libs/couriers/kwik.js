@@ -97,7 +97,7 @@ const estimate_kwik = async ({
 import { authenticate_kwik } from "../utils/couriers.js";
 
 async function create_kwik(details) {
-  const {
+  let {
     pickup_address,
     sender_name,
     pickup_latitude,

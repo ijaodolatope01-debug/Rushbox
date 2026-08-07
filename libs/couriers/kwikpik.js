@@ -50,7 +50,7 @@ const estimate_kwikpik = async ({
 };
 
 async function create_kwikpik(details) {
-  const {
+  let {
     dropoff_latitude,
     dropoff_longitude,
     recipient_address,

@@ -1,9 +1,9 @@
 import { thirty_mins } from "../estimates.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
-const estimate_dellyman = async ({ pickup_label, destination_label }) => {
+let estimate_dellyman = async ({ pickup_label, destination_label }) => {
   try {
-    const res = await fetch("https://dev.dellyman.com/api/v3.0/GetQuotes", {
+    let res = await fetch("https://dev.dellyman.com/api/v3.0/GetQuotes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +19,7 @@ const estimate_dellyman = async ({ pickup_label, destination_label }) => {
       }),
     });
 
-    const data = await res.json();
+    let data = await res.json();
     if (data.ResponseMessage !== "Success") return null;
 
     return {
@@ -33,7 +33,7 @@ const estimate_dellyman = async ({ pickup_label, destination_label }) => {
 };
 
 async function create_dellyman(details) {
-  const {
+  let {
     reference,
     company_id,
     sender_name,
@@ -53,7 +53,7 @@ async function create_dellyman(details) {
 
   reference = reference || crypto.randomUUID();
   try {
-    const res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
+    let res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -107,13 +107,13 @@ async function create_dellyman(details) {
   return reply;
 }
 
-const webhook_dellyman = async () => {
-  const hash = crypto
+let webhook_dellyman = async () => {
+  let hash = crypto
     .createHmac("sha256", process.env.DELLYMAN_TOKEN)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  const event = req.body;
+  let event = req.body;
   let { status, order } = event;
 
   if (!status || hash != req.headers["X-Dellyman-Signature"]) {
