@@ -21,10 +21,11 @@ const applyCharges = (estimate) => {
 
   const charge = estimate.price > 300 ? 500 : 300;
 
+  estimate.price = Math.ceil(estimate.price);
   return {
     ...estimate,
     charge,
-    total_price: estimate.price + charge,
+    total_price: Math.ceil(estimate.price + charge),
     duration: estimate.duration || DEFAULT_DURATION,
   };
 };

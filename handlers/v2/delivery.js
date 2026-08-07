@@ -63,7 +63,9 @@ const get_payment_url = async (req) => {
 
   const response = await initializePaystackTransaction({
     email,
-    amount: (Number(product_price) + Number(estimate.total_price)) * 100, // Convert to kobo
+    amount: parseInt(
+      (Number(product_price) + Number(estimate.total_price)) * 100,
+    ), // Convert to kobo
     reference: payment_reference,
     metadata: {
       user_id,
