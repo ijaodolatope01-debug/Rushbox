@@ -105,6 +105,7 @@ const paystack_webhook_events_listener = async (req) => {
         console.log("Crediting wallet", { user: virtual_account.user, value });
         await credit_wallet(virtual_account.user, value, {
           authorization: body.data.authorization,
+          db,
         });
       } else {
         console.log(

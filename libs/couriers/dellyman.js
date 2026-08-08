@@ -1,3 +1,4 @@
+import { debug } from "../../handlers/v2/delivery.js";
 import { thirty_mins } from "../estimates.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
@@ -20,6 +21,8 @@ let estimate_dellyman = async ({ pickup_label, destination_label }) => {
     });
 
     let data = await res.json();
+    debug(data, "delly mom");
+
     if (data.ResponseMessage !== "Success") return null;
 
     return {
@@ -27,7 +30,9 @@ let estimate_dellyman = async ({ pickup_label, destination_label }) => {
       price: data.Companies[0]?.TotalPrice,
       duration: "Next day",
     };
-  } catch {
+  } catch (e) {
+    console.log(e);
+    debug(9886517674);
     return null;
   }
 };

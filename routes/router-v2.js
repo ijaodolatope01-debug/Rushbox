@@ -28,6 +28,7 @@ import {
 } from "../handlers/v2/user.js";
 import {
   add_bank_account,
+  delete_bank_account,
   get_bank_accounts,
   get_banks,
   get_wallet,
@@ -294,6 +295,16 @@ const router = {
         amount: { type: "number", required: true },
         bank_account_id: { type: "string", required: true },
         reason: { type: "string", required: false },
+      },
+    },
+  },
+
+  delete_bank_account: {
+    handler: delete_bank_account,
+    security: "auth_token",
+    schema: {
+      body: {
+        bank_account_id: { type: "string", required: true },
       },
     },
   },

@@ -280,7 +280,43 @@ const get_bank_accounts = async (req) => {
   };
 };
 
+const delete_bank_account = async (req) => {
+  const { headers, db, body } = req;
+  const { profile } = headers;
+
+  const { bank_account_id } = body;
+
+  if (!bank_account_id) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Bank account ID is required",
+    };
+  }
+
+  const Bank_accounts = await db.folder("Bank_accounts");
+
+  const result = await Bank_accounts.deleteOne({
+    _id: bank_account_id,
+    user_id: profile._id,
+  });
+
+  if (!result.deletedCount) {
+    return {
+      ok: false,
+      status: 404,
+      message: "Bank account not found",
+    };
+  }
+
+  return {
+    ok: true,
+    message: "Bank account deleted successfully",
+  };
+};
+
 export {
+  delete_bank_account,
   get_bank_accounts,
   get_wallet,
   transactions,
