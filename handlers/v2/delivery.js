@@ -302,7 +302,7 @@ const create_delivery = async (req, opts) => {
           courier: courierName,
           rushbox_id,
         },
-        { status: "failed", message: reply.message },
+        { status: "failed", message: reply.message || "Order creation failed" },
         db,
       );
 
