@@ -282,10 +282,30 @@ const create_delivery = async (req, opts) => {
       courier_key: reply?.courier_key,
     });
 
+    // Normalize
+    debug("[create_delivery] Normalizing order response");
+    const norm = normalise_order_response(reply.courier_response, details, {
+      name: courierName,
+      tracking: reply.courier_key,
+    });
+
     if (!reply?.courier_key) {
       debug("[create_delivery] Courier failed - reverting wallet", {
         message: reply?.message,
       });
+
+      await store_delivery(
+        reply,
+        {
+          ...details,
+          norm,
+          courier: courierName,
+          rushbox_id,
+        },
+        { status: "failed", message: reply.message },
+        db,
+      );
+
       await revert_wallet(
         details.user_id,
         estimate.total_price,
@@ -294,13 +314,6 @@ const create_delivery = async (req, opts) => {
       );
       return { ok: false, message: reply?.message || "Courier failed" };
     }
-
-    // Normalize
-    debug("[create_delivery] Normalizing order response");
-    const norm = normalise_order_response(reply.courier_response, details, {
-      name: courierName,
-      tracking: reply.courier_key,
-    });
 
     // Persist
     debug("[create_delivery] Storing delivery", {
