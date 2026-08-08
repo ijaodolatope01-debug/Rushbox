@@ -31,7 +31,7 @@ const store_delivery = async (response, body, status, db) => {
 
   let res = await (await db.folder("Orders")).insertOne(order);
 
-  return { _id: res.insertedId };
+  return order;
 };
 
 const delivery_failed = async (message, details, db) => {
@@ -43,6 +43,9 @@ const validateEstimate = async (estimate_id, courier, db) => {
     await db.folder("Estimates")
   ).findOne({ _id: estimate_id });
 
+  console.log(estimate, "hey");
+  let courier_estimate = estimate?.estimates?.[courier];
+
   if (!estimate) return "";
   else if (estimate.used) {
     return "Estimate has been used.";
@@ -50,7 +53,7 @@ const validateEstimate = async (estimate_id, courier, db) => {
     return "Estimate have expired. Fetch again.";
   }
 
-  let courier_estimate = estimate.estimates[courier];
+  if (!courier_estimate) return "";
 
   return { courier_estimate, location_details: estimate.payload };
 };

@@ -94,6 +94,7 @@ async function create_errandlr(details) {
     });
 
     data = await response.json();
+    console.log(data);
 
     if (data?.status === 200) {
       reply.courier_key = data?.trackingId;

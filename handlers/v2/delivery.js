@@ -13,19 +13,33 @@ import {
 } from "../../services/payment.js";
 import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 
+const debug = (...args) => {
+  if (process.env.DEV) {
+    console.log(...args);
+  }
+};
+
 const get_payment_url = async (req) => {
   let { db, headers, body } = req;
   let { profile } = headers;
   let { delivery_details, estimate_id, product_price } = body;
 
-  console.log(estimate_id, product_price, "HOWWWW");
+  debug(estimate_id, product_price, "HOWWWW");
   const senderEmail = delivery_details?.details?.sender_email;
-  if (senderEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(senderEmail)) {
+
+  debug(senderEmail, "ehlo");
+  if (
+    senderEmail &&
+    !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
+      senderEmail,
+    )
+  ) {
     return {
       ok: false,
       message: "Invalid sender email",
     };
   }
+  debug(senderEmail);
 
   let estimate = await validateEstimate(
     estimate_id,
@@ -115,7 +129,7 @@ const retrieve_order_by_reference = async (req) => {
 };
 
 const create_delivery = async (req, opts) => {
-  console.log("[create_delivery] Starting handler", {
+  debug("[create_delivery] Starting handler", {
     from_webhook: opts?.from_webhook,
   });
   let { from_webhook, db } = opts || {};
@@ -126,7 +140,7 @@ const create_delivery = async (req, opts) => {
   if (res) {
     db = req.db;
     req.body.user_id = req.headers.profile?._id;
-    console.log("[create_delivery] API request mode", {
+    debug("[create_delivery] API request mode", {
       user_id: req.body.user_id,
     });
   }
@@ -142,7 +156,7 @@ const create_delivery = async (req, opts) => {
         payment_reference: req.body.payment_reference,
         user_id: req.body.user_id,
       };
-      console.log("[create_delivery] Parsed API request details", {
+      debug("[create_delivery] Parsed API request details", {
         courierName,
         payment_reference: details.payment_reference,
       });
@@ -156,25 +170,38 @@ const create_delivery = async (req, opts) => {
       };
 
       courierName = details.courier;
-      console.log("[create_delivery] Webhook mode - pending delivery", {
+      debug("[create_delivery] Webhook mode - pending delivery", {
         courierName,
       });
     }
     if (!details.user_id) {
-      console.log("[create_delivery] Missing user_id");
+      debug("[create_delivery] Missing user_id");
       return {
         ok: false,
         message: "user_id is not found",
       };
     }
 
+    let senderEmail = details.sender_email;
+    if (
+      senderEmail &&
+      !/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
+        senderEmail,
+      )
+    ) {
+      return {
+        ok: false,
+        message: "Invalid sender email",
+      };
+    }
+
     const rushbox_id = details.rushbox_id || crypto.randomUUID();
     details.rushbox_id = rushbox_id;
-    console.log("[create_delivery] Generated rushbox_id", { rushbox_id });
+    debug("[create_delivery] Generated rushbox_id", { rushbox_id });
 
     let estimate = await validateEstimate(details.estimate_id, courierName, db);
     if (typeof estimate === "string") {
-      console.log("[create_delivery] Estimate validation failed", {
+      debug("[create_delivery] Estimate validation failed", {
         error: estimate,
       });
       return {
@@ -182,21 +209,21 @@ const create_delivery = async (req, opts) => {
         message: estimate || "Courier estimate not found",
       };
     }
-    console.log("[create_delivery] Estimate validated", {
+    debug("[create_delivery] Estimate validated", {
       estimate_id: details.estimate_id,
-      total_price: estimate.courier_estimate.total_price,
+      total_price: estimate.courier_estimate?.total_price,
     });
 
     details = {
       ...details,
       ...estimate.location_details,
-      ...estimate.courier_estimate.meta,
+      ...estimate.courier_estimate?.meta,
     };
 
     estimate = estimate.courier_estimate;
     // Handle payment reference
     if (details.payment_reference) {
-      console.log("[create_delivery] Handling payment reference", {
+      debug("[create_delivery] Handling payment reference", {
         payment_reference: details.payment_reference,
       });
       const paymentStatus = await handle_payment_ref(
@@ -204,10 +231,10 @@ const create_delivery = async (req, opts) => {
         details,
         db,
       );
-      console.log("[create_delivery] Payment status", { paymentStatus });
+      debug("[create_delivery] Payment status", { paymentStatus });
 
       if (["PENDING", "ALREADY_PENDING"].includes(paymentStatus)) {
-        console.log("[create_delivery] Payment pending");
+        debug("[create_delivery] Payment pending");
         return {
           ok: false,
           message: "Pending",
@@ -217,7 +244,7 @@ const create_delivery = async (req, opts) => {
     }
 
     // Charge wallet
-    console.log("[create_delivery] Charging wallet", {
+    debug("[create_delivery] Charging wallet", {
       user_id: details.user_id,
       amount: estimate.total_price,
     });
@@ -230,33 +257,33 @@ const create_delivery = async (req, opts) => {
     );
 
     if (!charge.ok) {
-      console.log("[create_delivery] Wallet charge failed", {
+      debug("[create_delivery] Wallet charge failed", {
         message: charge.message,
       });
       await delivery_failed(charge.message, details, db);
       return { ok: false, message: charge.message };
     }
-    console.log("[create_delivery] Wallet charged successfully");
+    debug("[create_delivery] Wallet charged successfully");
 
     // Dispatch courier
-    console.log("[create_delivery] Dispatching courier", {
+    debug("[create_delivery] Dispatching courier", {
       courier: courierName,
     });
     const strategy = courierStrategies[courierName];
     if (!strategy) {
-      console.log("[create_delivery] Invalid courier strategy", {
+      debug("[create_delivery] Invalid courier strategy", {
         courier: courierName,
       });
       return { ok: false, message: "Invalid courier" };
     }
 
     const reply = await strategy(details);
-    console.log("[create_delivery] Courier dispatch response received", {
+    debug("[create_delivery] Courier dispatch response received", {
       courier_key: reply?.courier_key,
     });
 
     if (!reply?.courier_key) {
-      console.log("[create_delivery] Courier failed - reverting wallet", {
+      debug("[create_delivery] Courier failed - reverting wallet", {
         message: reply?.message,
       });
       await revert_wallet(
@@ -269,14 +296,14 @@ const create_delivery = async (req, opts) => {
     }
 
     // Normalize
-    console.log("[create_delivery] Normalizing order response");
+    debug("[create_delivery] Normalizing order response");
     const norm = normalise_order_response(reply.courier_response, details, {
       name: courierName,
       tracking: reply.courier_key,
     });
 
     // Persist
-    console.log("[create_delivery] Storing delivery", {
+    debug("[create_delivery] Storing delivery", {
       rushbox_id,
       courier: courierName,
     });
@@ -291,23 +318,24 @@ const create_delivery = async (req, opts) => {
       null,
       db,
     );
-
+    debug(store_response);
     norm.order_id = rushbox_id;
     norm.order_status = store_response?.status;
 
+    debug(norm);
     await (
       await db.folder("Estimates")
     ).updateOne({ _id: details.estimate_id }, { $set: { used: true } });
-    console.log("[create_delivery] Marked estimate as used", {
+    debug("[create_delivery] Marked estimate as used", {
       estimate_id: details.estimate_id,
     });
 
     if (!res) {
-      console.log("[create_delivery] Webhook mode - no response sent");
+      debug("[create_delivery] Webhook mode - no response sent");
       return;
     }
 
-    console.log("[create_delivery] Delivery created successfully", {
+    debug("[create_delivery] Delivery created successfully", {
       rushbox_id,
     });
     return {
@@ -324,4 +352,4 @@ const create_delivery = async (req, opts) => {
   }
 };
 
-export { create_delivery, get_payment_url, retrieve_order_by_reference };
+export { create_delivery, get_payment_url, retrieve_order_by_reference, debug };
