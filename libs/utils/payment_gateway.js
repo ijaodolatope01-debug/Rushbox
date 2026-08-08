@@ -124,10 +124,99 @@ const handle_bank_account = async (user_data, db) => {
   ).replaceOne({ _id }, data, { upsert: true });
 };
 
+const PAYSTACK_URL = "https://api.paystack.co";
+
+const paystackRequest = async (endpoint, options = {}) => {
+  const response = await fetch(`${PAYSTACK_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${process.env.PAYSTACK_SECRET}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.status) {
+    throw new Error(data.message || "Paystack request failed");
+  }
+
+  return data;
+};
+
+// Get banks available for transfers
+const get_paystack_banks = async ({
+  country = "nigeria",
+  currency = "NGN",
+} = {}) => {
+  const params = new URLSearchParams({
+    country,
+    currency,
+  });
+
+  const response = await paystackRequest(`/bank?${params}`);
+
+  return response.data;
+};
+
+// Transfer money from Paystack balance to a bank account
+const transfer_to_bank = async ({
+  name,
+  account_number,
+  bank_code,
+  amount,
+  reason = "Bank transfer",
+  reference = crypto.randomUUID(),
+}) => {
+  // 1. Create/retrieve the transfer recipient
+  const recipient = await paystackRequest("/transferrecipient", {
+    method: "POST",
+    body: JSON.stringify({
+      type: "nuban",
+      name,
+      account_number,
+      bank_code,
+      currency: "NGN",
+    }),
+  });
+
+  const recipient_code = recipient.data.recipient_code;
+
+  // 2. Initiate the transfer
+  const transfer = await paystackRequest("/transfer", {
+    method: "POST",
+    body: JSON.stringify({
+      source: "balance",
+      amount: Math.round(amount * 100),
+      recipient: recipient_code,
+      reference,
+      reason,
+      currency: "NGN",
+    }),
+  });
+
+  return transfer.data;
+};
+
+const resolve_bank_account = async (account_number, bank_code) => {
+  const params = new URLSearchParams({
+    account_number,
+    bank_code,
+  });
+
+  const response = await paystackRequest(`/bank/resolve?${params.toString()}`);
+
+  return response.data;
+};
+
 export {
   create_virtual_account,
   create_customer,
   handle_bank_account,
   fetch_customer,
   update_customer,
+  get_paystack_banks,
+  transfer_to_bank,
+  resolve_bank_account,
 };

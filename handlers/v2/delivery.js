@@ -295,14 +295,22 @@ const create_delivery = async (req, opts) => {
       });
 
       await store_delivery(
-        reply,
+        {
+          status: "failed",
+          message: "Delivery creation failed — Your wallet has been refunded",
+        },
         {
           ...details,
           norm,
           courier: courierName,
           rushbox_id,
         },
-        { status: "failed", message: reply.message || "Order creation failed" },
+        {
+          status: "failed",
+          message:
+            reply.message ||
+            "Delivery creation failed — Your wallet has been refunded",
+        },
         db,
       );
 

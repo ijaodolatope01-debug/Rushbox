@@ -26,7 +26,14 @@ import {
   delete_account,
   user,
 } from "../handlers/v2/user.js";
-import { get_wallet, transactions } from "../handlers/v2/wallets.js";
+import {
+  add_bank_account,
+  get_bank_accounts,
+  get_banks,
+  get_wallet,
+  transactions,
+  withdraw,
+} from "../handlers/v2/wallets.js";
 import { paystack_webhook_events_listener } from "../handlers/v2/webhook.js";
 
 const router = {
@@ -261,6 +268,39 @@ const router = {
         limit: { type: "number", default_value: 20 },
       },
     },
+  },
+
+  get_banks: {
+    handler: get_banks,
+    security: "auth_token",
+  },
+
+  add_bank_account: {
+    handler: add_bank_account,
+    security: "auth_token",
+    schema: {
+      body: {
+        account_number: { type: "string", required: true },
+        bank_code: { type: "string", required: true },
+      },
+    },
+  },
+
+  withdraw: {
+    handler: withdraw,
+    security: "auth_token",
+    schema: {
+      body: {
+        amount: { type: "number", required: true },
+        bank_account_id: { type: "string", required: true },
+        reason: { type: "string", required: false },
+      },
+    },
+  },
+
+  get_bank_accounts: {
+    handler: get_bank_accounts,
+    security: "auth_token",
   },
 
   // Webhooks
