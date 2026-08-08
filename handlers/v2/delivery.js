@@ -280,7 +280,7 @@ const create_delivery = async (req, opts) => {
       rushbox_id,
       courier: courierName,
     });
-    await store_delivery(
+    let store_response = await store_delivery(
       reply,
       {
         ...details,
@@ -293,6 +293,7 @@ const create_delivery = async (req, opts) => {
     );
 
     norm.order_id = rushbox_id;
+    norm.order_status = store_response?.status;
 
     await (
       await db.folder("Estimates")
