@@ -16,7 +16,11 @@ import {
 } from "../handlers/v2/delivery.js";
 import { get_order, history } from "../handlers/v2/history.js";
 import { fetch_estimates } from "../handlers/v2/order_estimate.js";
-import { add_review, get_reviews } from "../handlers/v2/reviews.js";
+import {
+  add_review,
+  courier_stats,
+  get_reviews,
+} from "../handlers/v2/reviews.js";
 import {
   confirm_delete_account,
   delete_account,
@@ -213,6 +217,16 @@ const router = {
         rating: { type: "number", required: true },
         orderid: { type: "string", required: true },
         comment: { type: "string" },
+      },
+    },
+  },
+
+  courier_stats: {
+    handler: courier_stats,
+    security: "auth_token",
+    schema: {
+      body: {
+        courier: { type: "string", required: true },
       },
     },
   },

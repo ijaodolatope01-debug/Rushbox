@@ -330,6 +330,7 @@ const create_delivery = async (req, opts) => {
       estimate_id: details.estimate_id,
     });
 
+    norm.courier_estimate = estimate;
     if (!res) {
       debug("[create_delivery] Webhook mode - no response sent");
       return;

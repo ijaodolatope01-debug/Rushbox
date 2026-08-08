@@ -51,6 +51,22 @@ const get_courier_ratings = async (courier, db) => {
   };
 };
 
+const courier_stats = async (req) => {
+  let { body, db, headers } = req;
+  let { courier } = body;
+
+  let Orders = await db.folder("Orders");
+
+  let res = await Orders.countDocuments({ courier });
+
+  return {
+    ok: true,
+    data: {
+      total_orders: res,
+    },
+  };
+};
+
 const add_review = async (req) => {
   let { headers, db, body } = req;
   let { profile } = headers;
@@ -107,4 +123,4 @@ const get_reviews = async (req) => {
   };
 };
 
-export { add_review, get_reviews, get_courier_ratings };
+export { add_review, get_reviews, get_courier_ratings, courier_stats };

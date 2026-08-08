@@ -42,6 +42,27 @@ const history = async (req) => {
     orders = orders.map((o) => ({ ...o, review: revMap[o.order_id] || null }));
   }
 
+  let estimates = await (await db.folder("Estimates"))
+    .find({ _id: { $in: orders.map((or) => or.estimate_id) } })
+    .toArray();
+
+  orders.map((order) => {
+    order.courier_estimate = estimates.find(
+      (es) => es._id === order.estimate_id,
+    );
+    if (order.courier_estimate) {
+      order.courier_estimate =
+        order.courier_estimate?.estimates?.[order.courier];
+
+      if (order.courier_estimate) {
+        order.courier_estimate = {
+          total_price: order.courier_estimate.total_price,
+          duration: order.courier_estimate.duration,
+        };
+      }
+    }
+  });
+
   return {
     ok: true,
     data: orders,
@@ -65,6 +86,22 @@ const get_order = async (req) => {
   if (order) {
     order = normalise_order(order);
     order.review = await (await db.folder("Reviews")).findOne({ orderid: _id });
+  }
+
+  let estimate = await (
+    await db.folder("Estimates")
+  ).findOne({ _id: order.estimate_id });
+
+  order.courier_estimate = estimate;
+  if (order.courier_estimate) {
+    order.courier_estimate = order.courier_estimate?.estimates?.[order.courier];
+
+    if (order.courier_estimate) {
+      order.courier_estimate = {
+        total_price: order.courier_estimate.total_price,
+        duration: order.courier_estimate.duration,
+      };
+    }
   }
 
   return {
