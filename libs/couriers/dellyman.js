@@ -31,7 +31,7 @@ let estimate_dellyman = async ({ pickup_label, destination_label }) => {
       duration: "Next day",
     };
   } catch (e) {
-    console.log(e);
+    debug(e);
     debug(9886517674);
     return null;
   }
@@ -57,56 +57,91 @@ async function create_dellyman(details) {
   let data;
 
   reference = reference || crypto.randomUUID();
+
   try {
-    let res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
+    const payload = {
+      OrderRef: reference,
+      CompanyID: 643,
+      PaymentMode: "online",
+      Vehicle: "Bike",
+
+      PickUpContactName: sender_name,
+      PickUpContactNumber: "0".concat(sender_phone.slice(4)),
+      PickUpGooglePlaceAddress: pickup_address,
+      PickUpLandmark: "N/A",
+
+      IsProductOrder: 0,
+      IsInstantDelivery: 0,
+
+      PickUpRequestedDate:
+        new Date().getFullYear() +
+        "/" +
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+        "/" +
+        String(new Date().getDate()).padStart(2, "0"),
+
+      PickUpRequestedTime: thirty_mins(),
+      DeliveryRequestedTime: thirty_mins(),
+
+      DeliveryTimeline: "sameDay",
+
+      Packages: [
+        {
+          PackageDescription: package_detail,
+          DeliveryContactName: recipient_name,
+          DeliveryContactNumber: "0".concat(recipient_phone.slice(4)),
+          PackageWeight: package_weight,
+          DeliveryGooglePlaceAddress: recipient_address,
+          DeliveryLandmark: delivery_landmark || recipient_address,
+          ProductAmount: value_of_item,
+        },
+      ],
+    };
+
+    debug("Dellyman request:", payload);
+
+    const res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
       method: "POST",
+
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${process.env.DELLYMAN_TOKEN}`,
       },
-      body: JSON.stringify({
-        OrderRef: reference,
-        CompanyID: 643,
-        PaymentMode: "online",
-        Vehicle: "Bike",
-        PickUpContactName: sender_name,
-        PickUpContactNumber: "0".concat(sender_phone.slice(4)),
-        PickUpGooglePlaceAddress: pickup_address,
-        PickUpLandmark: "N/A",
-        IsProductOrder: 0,
-        IsInstantDelivery: 0,
-        PickUpRequestedDate:
-          new Date().getFullYear() +
-          "/" +
-          String(new Date().getMonth() + 1).padStart(2, "0") +
-          "/" +
-          String(new Date().getDate()).padStart(2, "0"),
-        PickUpRequestedTime: thirty_mins(),
-        DeliveryRequestedTime: thirty_mins(),
-        DeliveryTimeline: "sameDay",
-        Packages: [
-          {
-            PackageDescription: package_detail,
-            DeliveryContactName: recipient_name,
-            DeliveryContactNumber: "0".concat(recipient_phone.slice(4)),
-            PackageWeight: package_weight,
-            DeliveryGooglePlaceAddress: recipient_address,
-            DeliveryLandmark: delivery_landmark,
-            ProductAmount: value_of_item,
-          },
-        ],
-      }),
+
+      body: JSON.stringify(payload),
     });
 
-    data = await res.json();
+    const responseText = await res.text();
+
+    debug("Dellyman raw response:", responseText);
+
+    const jsonStart = responseText.indexOf("{");
+
+    if (jsonStart === -1) {
+      console.error("Dellyman did not return JSON:", responseText);
+      return reply;
+    }
+
+    try {
+      data = JSON.parse(responseText.slice(jsonStart));
+    } catch (error) {
+      console.error("Failed to parse Dellyman response:", error);
+      return reply;
+    }
+
+    debug("Dellyman data:", data);
 
     if (data.ResponseMessage === "Success") {
       reply.courier_key = data.OrderID;
       reply.courier_response = data;
+
+      debug("Dellyman parsed response:", data);
+    } else {
+      console.error("Dellyman order failed:", data);
     }
   } catch (e) {
-    console.log(e);
+    console.error("create_dellyman error:", e);
   }
 
   return reply;
