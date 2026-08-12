@@ -5,12 +5,41 @@ import { estimate_fez } from "../../libs/couriers/fez.js";
 import { estimate_kwik } from "../../libs/couriers/kwik.js";
 import { estimate_kwikpik } from "../../libs/couriers/kwikpik.js";
 import { applyCharges, swap_payload_key } from "../../libs/estimates.js";
+import { debug } from "./delivery.js";
 import { get_courier_ratings } from "./reviews.js";
+
+const filter_estimates = (estimates, filter) => {
+  if (!filter) return estimates;
+
+  const { type, limit } = filter;
+
+  if (!["cheapest", "quickest"].includes(type)) {
+    return estimates;
+  }
+
+  const entries = Object.entries(estimates);
+
+  entries.sort(([, a], [, b]) => {
+    if (type === "cheapest") {
+      return a.total_price - b.total_price;
+    }
+
+    if (type === "quickest") {
+      return a.duration - b.duration;
+    }
+
+    return 0;
+  });
+
+  return Object.fromEntries(entries.slice(0, Number(limit) || entries.length));
+};
 
 const fetch_estimates = async (req) => {
   let { db, headers } = req;
   let { profile } = headers;
   const payload = req.body;
+  let filter = payload.filter;
+  delete payload.filter;
 
   const estimates = await Promise.all([
     estimate_chowdeck(payload),
@@ -44,6 +73,11 @@ const fetch_estimates = async (req) => {
     let est = normalized[k];
 
     normalized[k].ratings = await get_courier_ratings(est.courier, db);
+  }
+
+  if (filter) {
+    debug(filter);
+    normalized = filter_estimates(normalized, filter);
   }
 
   return {

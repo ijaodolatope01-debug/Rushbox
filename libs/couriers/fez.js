@@ -2,7 +2,7 @@ import { authenticate_fez } from "../utils/couriers.js";
 
 let estimate_fez = async ({
   package_weight,
-  pick_up_state,
+  pickup_state,
   destination_state,
 }) => {
   try {
@@ -29,7 +29,7 @@ let estimate_fez = async ({
       },
       body: JSON.stringify({
         weight: package_weight,
-        pickUpState: pick_up_state,
+        pickUpState: pickup_state,
         state: destination_state,
       }),
     });

@@ -5,6 +5,7 @@ import { estimate_errandlr } from "../../libs/couriers/errandlr.js";
 import { estimate_fez } from "../../libs/couriers/fez.js";
 import { estimate_kwik } from "../../libs/couriers/kwik.js";
 import { estimate_kwikpik } from "../../libs/couriers/kwikpik.js";
+import { debug } from "../v2/delivery.js";
 import { get_courier_ratings } from "./reviews.js";
 
 const thirty_mins = () => {
@@ -39,7 +40,7 @@ const applyCharges = (estimate) => {
 };
 
 let swaps = [
-  ["pick_up_state", "recipient_state"],
+  ["pickup_state", "recipient_state"],
   ["pickup_city", "recipient_city"],
   ["local_govt", "local_govt"],
   ["destination_latitude", "dropoff_latitude"],
