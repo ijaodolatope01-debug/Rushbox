@@ -31,17 +31,7 @@ const applyCharges = (estimate) => {
   };
 };
 
-let swaps = [
-  ["pick_up_state", "recipient_state"],
-  ["pickup_city", "recipient_city"],
-  ["local_govt", "local_govt"],
-  ["destination_latitude", "dropoff_latitude"],
-  ["destination_longitude", "dropoff_longitude"],
-  ["destination_placeid", "recipient_address"],
-  ["pickup_placeid", "pickup_address"],
-  ["source_longitude", "pickup_longitude", true],
-  ["source_latitude", "pickup_latitude", true],
-];
+let swaps = [];
 
 const swap_payload_key = (payload) => {
   swaps.map((sp) => {

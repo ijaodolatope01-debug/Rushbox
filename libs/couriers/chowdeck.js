@@ -1,8 +1,8 @@
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_chowdeck = async ({
-  source_latitude,
-  source_longitude,
+  pickup_latitude,
+  pickup_longitude,
   destination_latitude,
   destination_longitude,
 }) => {
@@ -16,8 +16,8 @@ const estimate_chowdeck = async ({
       },
       body: JSON.stringify({
         source_address: {
-          latitude: source_latitude,
-          longitude: source_longitude,
+          latitude: pickup_latitude,
+          longitude: pickup_longitude,
         },
         destination_address: {
           latitude: destination_latitude,

@@ -13,7 +13,7 @@ const filter_estimates = (estimates, filter) => {
 
   const { type, limit } = filter;
 
-  if (!["cheapest", "quickest"].includes(type)) {
+  if (!["cheapest", "quickest", "highest-rating"].includes(type)) {
     return estimates;
   }
 
@@ -25,7 +25,20 @@ const filter_estimates = (estimates, filter) => {
     }
 
     if (type === "quickest") {
+      // TODO: define a proper duration ranking
       return a.duration - b.duration;
+    }
+
+    if (type === "highest-rating") {
+      const aHasRatings = a.ratings?.total > 0;
+      const bHasRatings = b.ratings?.total > 0;
+
+      // Rated couriers come before unrated couriers
+      if (aHasRatings !== bHasRatings) {
+        return bHasRatings - aHasRatings;
+      }
+
+      return (b.ratings?.avg ?? 0) - (a.ratings?.avg ?? 0);
     }
 
     return 0;

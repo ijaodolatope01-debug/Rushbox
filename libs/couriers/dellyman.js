@@ -2,7 +2,7 @@ import { debug } from "../../handlers/v2/delivery.js";
 import { thirty_mins } from "../estimates.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
-let estimate_dellyman = async ({ pickup_label, destination_label }) => {
+let estimate_dellyman = async ({ pickup_address, destination_address }) => {
   try {
     let res = await fetch("https://dev.dellyman.com/api/v3.0/GetQuotes", {
       method: "POST",
@@ -15,8 +15,8 @@ let estimate_dellyman = async ({ pickup_label, destination_label }) => {
         Vehicle: "Bike",
         PickupRequestedTime: thirty_mins(),
         PickupRequestedDate: new Date().toLocaleDateString(),
-        PickupAddress: pickup_label,
-        DeliveryAddress: [destination_label],
+        PickupAddress: pickup_address,
+        DeliveryAddress: [destination_address],
       }),
     });
 
@@ -47,7 +47,7 @@ async function create_dellyman(details) {
     recipient_name,
     recipient_phone,
     package_weight,
-    recipient_address,
+    destination_address,
     delivery_landmark,
     value_of_item,
     package_detail,
@@ -91,8 +91,8 @@ async function create_dellyman(details) {
           DeliveryContactName: recipient_name,
           DeliveryContactNumber: "0".concat(recipient_phone.slice(4)),
           PackageWeight: package_weight,
-          DeliveryGooglePlaceAddress: recipient_address,
-          DeliveryLandmark: delivery_landmark || recipient_address,
+          DeliveryGooglePlaceAddress: destination_address,
+          DeliveryLandmark: delivery_landmark || destination_address,
           ProductAmount: value_of_item,
         },
       ],

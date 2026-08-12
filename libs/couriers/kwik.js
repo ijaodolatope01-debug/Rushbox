@@ -1,12 +1,12 @@
 const estimate_kwik = async ({
-  pickup_label,
-  destination_label,
+  pickup_address,
+  destination_address,
   sender_name,
   recipient_name,
   sender_phone,
   recipient_phone,
-  source_latitude,
-  source_longitude,
+  pickup_latitude,
+  pickup_longitude,
   destination_latitude,
   destination_longitude,
 }) => {
@@ -44,7 +44,7 @@ const estimate_kwik = async ({
           pickup_custom_field_template: "pricing-template",
           deliveries: [
             {
-              address: destination_label,
+              address: destination_address,
               name: recipient_name,
               latitude: Number(destination_latitude),
               longitude: Number(destination_longitude),
@@ -59,10 +59,10 @@ const estimate_kwik = async ({
           user_id: 1,
           pickups: [
             {
-              address: pickup_label,
+              address: pickup_address,
               name: sender_name,
-              latitude: Number(source_latitude),
-              longitude: Number(source_longitude),
+              latitude: Number(pickup_latitude),
+              longitude: Number(pickup_longitude),
               phone: sender_phone,
             },
           ],
@@ -104,10 +104,10 @@ async function create_kwik(details) {
     pickup_longitude,
     sender_phone,
     sender_email,
-    recipient_address,
+    destination_address,
     recipient_name,
-    dropoff_latitude,
-    dropoff_longitude,
+    destination_latitude,
+    destination_longitude,
     recipient_phone,
     recipient_email,
     value_of_item,
@@ -145,10 +145,10 @@ async function create_kwik(details) {
       ],
       deliveries: [
         {
-          address: recipient_address,
+          address: destination_address,
           name: recipient_name,
-          latitude: dropoff_latitude,
-          longitude: dropoff_longitude,
+          latitude: destination_latitude,
+          longitude: destination_longitude,
           time: new Date().toISOString(),
           phone: recipient_phone,
           email: recipient_email,

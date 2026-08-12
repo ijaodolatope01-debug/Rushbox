@@ -1,12 +1,7 @@
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 import crypto from "crypto"; // added import
 
-const estimate_errandlr = async ({
-  pickup_placeid,
-  pickup_label,
-  destination_placeid,
-  destination_label,
-}) => {
+const estimate_errandlr = async ({ pickup_address, destination_address }) => {
   try {
     const response = await fetch("https://commerce.errandlr.com/v2/estimate", {
       method: "POST",
@@ -17,9 +12,9 @@ const estimate_errandlr = async ({
       },
       body: JSON.stringify({
         dropoffLocations: [
-          { id: destination_placeid, label: destination_label },
+          { id: destination_address, label: destination_address },
         ],
-        pickupLocation: { id: pickup_placeid, label: pickup_label },
+        pickupLocation: { id: pickup_address, label: pickup_address },
       }),
     });
 
@@ -44,17 +39,17 @@ async function create_errandlr(details) {
     sender_name,
     sender_email,
     sender_phone,
-    dropoff_latitude,
-    dropoff_longitude,
+    destination_latitude,
+    destination_longitude,
     pickup_notes,
     order_name,
     order_number,
     recipient_phone,
     package_detail,
     delivery_notes,
-    recipient_state,
-    recipient_country,
-    recipient_city,
+    destination_state,
+    destination_country,
+    destination_city,
     local_govt,
   } = details;
 
@@ -74,8 +69,8 @@ async function create_errandlr(details) {
         name: sender_name,
         email: sender_email,
         phone: sender_phone,
-        latitude: dropoff_latitude,
-        longitude: dropoff_longitude,
+        latitude: destination_latitude,
+        longitude: destination_longitude,
         pickupNotes: pickup_notes,
         deliverToInformation: [
           {
@@ -86,9 +81,9 @@ async function create_errandlr(details) {
             deliveryNotes: delivery_notes,
           },
         ],
-        state: recipient_state,
-        country: recipient_country,
-        city: recipient_city,
+        state: destination_state,
+        country: destination_country,
+        city: destination_city,
         localGovt: local_govt,
       }),
     });

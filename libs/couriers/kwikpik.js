@@ -1,10 +1,10 @@
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_kwikpik = async ({
-  pickup_label,
-  destination_label,
-  source_latitude,
-  source_longitude,
+  pickup_address,
+  destination_address,
+  pickup_latitude,
+  pickup_longitude,
   destination_latitude,
   destination_longitude,
 }) => {
@@ -23,12 +23,12 @@ const estimate_kwikpik = async ({
           deliveryLocation: {
             latitude: Number(destination_latitude),
             longitude: Number(destination_longitude),
-            address: destination_label,
+            address: destination_address,
           },
           pickupLocation: {
-            latitude: Number(source_latitude),
-            longitude: Number(source_longitude),
-            address: pickup_label,
+            latitude: Number(pickup_latitude),
+            longitude: Number(pickup_longitude),
+            address: pickup_address,
           },
         }),
       },
@@ -51,9 +51,9 @@ const estimate_kwikpik = async ({
 
 async function create_kwikpik(details) {
   let {
-    dropoff_latitude,
-    dropoff_longitude,
-    recipient_address,
+    destination_latitude,
+    destination_longitude,
+    destination_address,
     pickup_latitude,
     pickup_longitude,
     pickup_address,
@@ -75,9 +75,9 @@ async function create_kwikpik(details) {
     let payload = {
       vehicleType: "motorcycle",
       deliveryLocation: {
-        latitude: Number(dropoff_latitude),
-        longitude: Number(dropoff_longitude),
-        address: recipient_address,
+        latitude: Number(destination_latitude),
+        longitude: Number(destination_longitude),
+        address: destination_address,
       },
       pickupLocation: {
         latitude: pickup_latitude,

@@ -47,8 +47,8 @@ let swaps = [
   ["destination_longitude", "dropoff_longitude"],
   ["destination_placeid", "recipient_address"],
   ["pickup_placeid", "pickup_address"],
-  ["source_longitude", "pickup_longitude", true],
-  ["source_latitude", "pickup_latitude", true],
+  ["pickup_longitude", "pickup_longitude", true],
+  ["pickup_latitude", "pickup_latitude", true],
 ];
 
 const swap_payload_key = (payload) => {

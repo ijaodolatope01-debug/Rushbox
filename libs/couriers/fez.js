@@ -1,3 +1,4 @@
+import { debug } from "../../handlers/v2/delivery.js";
 import { authenticate_fez } from "../utils/couriers.js";
 
 let estimate_fez = async ({
@@ -50,8 +51,8 @@ let estimate_fez = async ({
 
 async function create_fez(details) {
   let {
-    recipient_address,
-    recipient_state,
+    destination_address,
+    destination_state,
     recipient_name,
     recipient_phone,
     reference,
@@ -62,6 +63,18 @@ async function create_fez(details) {
     pickup_address,
   } = details;
 
+  debug({
+    destination_address,
+    destination_state,
+    recipient_name,
+    recipient_phone,
+    reference,
+    value_of_item,
+    package_weight,
+    package_detail,
+    pickup_state,
+    pickup_address,
+  });
   let reply = {};
   let data;
 
@@ -79,8 +92,8 @@ async function create_fez(details) {
       },
       body: JSON.stringify([
         {
-          recipientAddress: recipient_address,
-          recipientState: recipient_state,
+          recipientAddress: destination_address,
+          recipientState: destination_state,
           recipientName: recipient_name,
           recipientPhone: recipient_phone,
           uniqueID: reference,
@@ -96,6 +109,7 @@ async function create_fez(details) {
 
     data = await response.json();
 
+    debug("[Fez Response]", data);
     if (data.status === "Success") {
       reply.courier_response = data;
       reply.courier_key = data.orderNos[reference];
