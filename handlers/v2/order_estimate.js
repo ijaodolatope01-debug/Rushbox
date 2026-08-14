@@ -8,6 +8,23 @@ import { applyCharges, swap_payload_key } from "../../libs/estimates.js";
 import { debug } from "./delivery.js";
 import { get_courier_ratings } from "./reviews.js";
 
+const duration_rank = (duration) => {
+  if (typeof duration === "number") return duration;
+  if (typeof duration !== "string") return Infinity;
+
+  const value = duration.toLowerCase();
+  if (value.includes("next day")) return 24 * 60;
+  if (value.includes("same day") || value.includes("today")) return 12 * 60;
+
+  const match = value.match(/\d+(?:\.\d+)?/);
+  if (!match) return Infinity;
+
+  const amount = Number(match[0]);
+  if (value.includes("day")) return amount * 24 * 60;
+  if (value.includes("hour") || value.includes("hr")) return amount * 60;
+  return amount;
+};
+
 const filter_estimates = (estimates, filter) => {
   if (!filter) return estimates;
 
@@ -25,8 +42,7 @@ const filter_estimates = (estimates, filter) => {
     }
 
     if (type === "quickest") {
-      // TODO: define a proper duration ranking
-      return a.duration - b.duration;
+      return duration_rank(a.duration) - duration_rank(b.duration);
     }
 
     if (type === "highest-rating") {
@@ -47,12 +63,56 @@ const filter_estimates = (estimates, filter) => {
   return Object.fromEntries(entries.slice(0, Number(limit) || entries.length));
 };
 
+const LAGOS_COVERAGE = {
+  min_latitude: 6.35,
+  max_latitude: 6.75,
+  min_longitude: 2.7,
+  max_longitude: 4.0,
+};
+
+const is_lagos = (latitude, longitude) => {
+  latitude = Number(latitude);
+  longitude = Number(longitude);
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    return false;
+  }
+
+  return (
+    latitude >= LAGOS_COVERAGE.min_latitude &&
+    latitude <= LAGOS_COVERAGE.max_latitude &&
+    longitude >= LAGOS_COVERAGE.min_longitude &&
+    longitude <= LAGOS_COVERAGE.max_longitude
+  );
+};
+
+const is_covered = (payload) => {
+  const pickup = is_lagos(payload.pickup_latitude, payload.pickup_longitude);
+
+  const destination = is_lagos(
+    payload.destination_latitude,
+    payload.destination_longitude,
+  );
+
+  return pickup && destination;
+};
+
 const fetch_estimates = async (req) => {
   let { db, headers } = req;
   let { profile } = headers;
   const payload = req.body;
   let filter = payload.filter;
   delete payload.filter;
+
+  if (!is_covered(payload)) {
+    return {
+      ok: false,
+      message: "Locations entered are not within our coverage area yet",
+      data: {
+        estimates: {},
+      },
+    };
+  }
 
   const estimates = await Promise.all([
     estimate_chowdeck(payload),
