@@ -12,6 +12,7 @@ import {
   initializePaystackTransaction,
 } from "../../services/payment.js";
 import { charge_wallet, revert_wallet } from "../../services/wallet.js";
+import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 
 const debug = (...args) => {
   if (process.env.DEV) {
@@ -336,12 +337,13 @@ const create_delivery = async (req, opts) => {
         courier: courierName,
         rushbox_id,
       },
-      null,
+      { state: "ongoing", message: STATUSES_MESSAGE[1] },
       db,
     );
     debug(store_response);
     norm.order_id = rushbox_id;
     norm.order_status = store_response?.status;
+    norm.order_message = store_response?.status_message;
 
     debug(norm);
     await (

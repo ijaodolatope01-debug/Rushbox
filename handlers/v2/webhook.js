@@ -13,7 +13,7 @@ const courier_webhook = async (req) => {
   let handler = webhook_courier[courier];
 
   if (!handler) {
-    return { status: 200 };
+    return { ok: true, status: 200 };
   }
 
   let result = await handler(req, res);
@@ -36,6 +36,12 @@ const courier_webhook = async (req) => {
       req,
     );
 
+    let payload = {
+      order_id: _id,
+      user_id,
+      ongoing_status,
+      time: result.order[ongoing_status],
+    };
     try {
       await fetch(`https://livechat.rushbox.biz/send_event`, {
         method: "POST",
@@ -45,18 +51,19 @@ const courier_webhook = async (req) => {
         },
         body: JSON.stringify({
           user: user_id,
-          name: "ongoing_order_statud",
-          payload: {
-            order_id: _id,
-            user_id,
-            ongoing_status,
-            time: result.order[ongoing_status],
-          },
+          name: "ongoing_order_status",
+          payload,
         }),
       });
     } catch {}
   }
-  return { status: 200 };
+  return {
+    ok: true,
+    status: 200,
+    data: {
+      payload,
+    },
+  };
 };
 
 const paystack_webhook_events_listener = async (req) => {

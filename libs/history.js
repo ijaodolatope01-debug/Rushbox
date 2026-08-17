@@ -129,7 +129,9 @@ const normalise_order = (o) => {
   if (!nrm) return o;
 
   nrm.order_status = o.status;
+  nrm.order_message = o.status_message;
   nrm.order_id = o._id;
+  nrm.order_reference = o.order_reference;
   nrm.created = o.created;
   nrm.ongoing_status = o.ongoing_status;
   nrm.tracking = o.tracking;

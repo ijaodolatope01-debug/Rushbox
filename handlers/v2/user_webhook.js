@@ -1,36 +1,97 @@
+import crypto from "crypto";
+
+const retrieve_webhook = async (req) => {
+  let { db, headers } = req;
+  let { profile } = headers;
+
+  const webhook = await (
+    await db.folder("Webhooks")
+  ).findOne({
+    profile: profile._id,
+  });
+
+  if (!webhook) {
+    return {
+      ok: false,
+      message: "Webhook not found",
+    };
+  }
+
+  const secret = webhook.secret || "";
+
+  const masked_secret =
+    secret.length > 8
+      ? `${secret.slice(0, 4)}${"•".repeat(secret.length - 8)}${secret.slice(-4)}`
+      : "••••••••";
+
+  return {
+    ok: true,
+    message: "Webhook retrieved",
+    data: {
+      _id: webhook._id,
+      url: webhook.url,
+      secret: masked_secret,
+      created: webhook.created,
+      updated: webhook.updated,
+    },
+  };
+};
+
 const register_webhook = async (req) => {
   let { db, headers, body } = req;
   let { profile } = headers;
-  let { url } = req;
+  let { url } = body;
 
-  let _id = crypto.randomUUID();
+  const _id = crypto.randomUUID();
+
+  // Cryptographically secure webhook secret
+  const secret = crypto.randomBytes(32).toString("hex");
+
   await (
     await db.folder("Webhooks")
-  ).insertOne({ url, profile: profile._id, _id, created: Date.now() });
+  ).updateOne(
+    { profile: profile._id },
+    {
+      $set: {
+        url,
+        secret,
+        updated: Date.now(),
+      },
+      $setOnInsert: {
+        _id,
+        created: Date.now(),
+      },
+    },
+    { upsert: true },
+  );
 
   return {
-    ok: false,
-    message: "Webhook updated",
+    ok: true,
+    message: "Webhook registered",
     data: {
       url,
       _id,
+      secret,
     },
   };
 };
 
 const remove_webhook = async (req) => {
-  let { db, headers, body } = req;
+  let { db, headers } = req;
   let { profile } = headers;
 
   const res = await (
     await db.folder("Webhooks")
-  ).deleteOne({ profile: profile._id });
+  ).deleteOne({
+    profile: profile._id,
+  });
 
-  let ok = !!(res && res.deletedCount && res.deletedCount > 0);
+  const ok = !!(res && res.deletedCount && res.deletedCount > 0);
+
   return {
     ok,
     message: ok ? "Webhook deleted" : "Nothing happened",
   };
 };
 
-export { register_webhook, remove_webhook };
+export { register_webhook, remove_webhook, retrieve_webhook };

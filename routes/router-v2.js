@@ -27,6 +27,11 @@ import {
   user,
 } from "../handlers/v2/user.js";
 import {
+  register_webhook,
+  remove_webhook,
+  retrieve_webhook,
+} from "../handlers/v2/user_webhook.js";
+import {
   add_bank_account,
   delete_bank_account,
   get_bank_accounts,
@@ -35,7 +40,10 @@ import {
   transactions,
   withdraw,
 } from "../handlers/v2/wallets.js";
-import { paystack_webhook_events_listener } from "../handlers/v2/webhook.js";
+import {
+  courier_webhook,
+  paystack_webhook_events_listener,
+} from "../handlers/v2/webhook.js";
 
 const router = {
   user: {
@@ -319,6 +327,29 @@ const router = {
     handler: paystack_webhook_events_listener,
     security: "none",
     schema: { body: {} },
+  },
+
+  // Courier webhook
+  "courier_webhook/:courier": {
+    handler: courier_webhook,
+    security: "none",
+    schema: { body: {} },
+  },
+
+  // User webhook
+  register_webhook: {
+    handler: register_webhook,
+    schema: {
+      body: {
+        url: { type: "string", required: true },
+      },
+    },
+  },
+  remove_webhook: {
+    handler: remove_webhook,
+  },
+  retrieve_webhook: {
+    handler: retrieve_webhook,
   },
 };
 
