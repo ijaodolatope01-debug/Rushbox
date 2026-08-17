@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { create_delivery } from "./delivery.js";
+import { create_delivery, debug } from "./delivery.js";
 import { credit_wallet } from "../../services/wallet.js";
 import { webhook_courier } from "../../libs/couriers/index.js";
 import { send_notification } from "./push_noti.js";
@@ -7,9 +7,16 @@ import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { hash } from "../../libs/utils/hash.js";
 
 const courier_webhook = async (req) => {
-  let { params } = req;
+  let { params, query } = req;
   let { courier } = params;
 
+  debug(params, query);
+
+  return {
+    ok: true,
+    message: "Good",
+    data: { params, query },
+  };
   let handler = webhook_courier[courier];
 
   if (!handler) {

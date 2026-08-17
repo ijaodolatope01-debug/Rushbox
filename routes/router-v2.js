@@ -330,10 +330,28 @@ const router = {
   },
 
   // Courier webhook
+  // "courier_webhook/:courier": {
+  //   handler: courier_webhook,
+  //   security: "none",
+  //   schema: { body: {} },
+  // },
+
   "courier_webhook/:courier": {
     handler: courier_webhook,
     security: "none",
-    schema: { body: {} },
+    schema: {
+      params: {
+        courier: {
+          type: "string",
+          required: true,
+          enum: ["dhl", "dellyman", "fedex", "paystack"],
+        },
+      },
+      query: {
+        signature: { type: "string", default_value: "bimpe" },
+      },
+      body: {},
+    },
   },
 
   // User webhook
