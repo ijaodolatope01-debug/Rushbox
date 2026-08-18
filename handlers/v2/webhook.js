@@ -135,9 +135,7 @@ const courier_webhook = async (req) => {
   return {
     ok: true,
     status: 200,
-    data: {
-      payload,
-    },
+    data: {},
   };
 };
 

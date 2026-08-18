@@ -1,7 +1,6 @@
-import { ORDERS } from "../../ds/folders.js";
 import STATUSES_MAPS, { STATUSES_MESSAGE } from "../couriers/statuses_map.js";
 
-const update_ongoing_status = async (courier_key, status, courier) => {
+const update_ongoing_status = async (courier_key, status, courier, { db }) => {
   console.log("========== UPDATE ONGOING STATUS START ==========");
 
   console.log("[STATUS] Courier key:", courier_key);
@@ -23,7 +22,7 @@ const update_ongoing_status = async (courier_key, status, courier) => {
     return false;
   }
 
-  const Orders = await ORDERS();
+  const Orders = await db.folder("Orders");
 
   console.log("[STATUS] Orders collection loaded");
 

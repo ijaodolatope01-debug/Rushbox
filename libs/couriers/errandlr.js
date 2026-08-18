@@ -103,6 +103,7 @@ async function create_errandlr(details) {
 }
 
 const webhook_errandlr = async (req) => {
+  let { db } = req;
   console.log("========== ERRANDLR WEBHOOK START ==========");
 
   console.log("[ERRANDLR] Headers:", req.headers);
@@ -153,7 +154,9 @@ const webhook_errandlr = async (req) => {
   console.log("[ERRANDLR] Updating ongoing status...");
 
   try {
-    const result = await update_ongoing_status(id, ongoing_status, "errandlr");
+    const result = await update_ongoing_status(id, ongoing_status, "errandlr", {
+      db,
+    });
 
     console.log("[ERRANDLR] update_ongoing_status result:", result);
 
