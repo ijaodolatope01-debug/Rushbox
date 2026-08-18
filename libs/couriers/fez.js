@@ -125,6 +125,114 @@ async function create_fez(details) {
   return reply;
 }
 
-let webhook_fez = async (req, { staging }) => {};
+const webhook_fez = async (req, { staging, db }) => {
+  console.log("========== FEZ WEBHOOK START ==========");
+
+  console.log("[FEZ] Staging:", staging);
+  console.log("[FEZ] Headers:", req.headers);
+  console.log("[FEZ] Body:", req.body);
+
+  const { orderNumber, status } = req.body || {};
+
+  const timestamp = req.headers["x-timestamp"];
+  const caller_domain = req.headers["x-caller-domain"];
+  const received_signature = req.headers["x-signature"];
+
+  console.log("[FEZ] Order number:", orderNumber);
+  console.log("[FEZ] Status:", status);
+  console.log("[FEZ] Timestamp:", timestamp);
+  console.log("[FEZ] Caller domain:", caller_domain);
+  console.log("[FEZ] Received signature:", received_signature);
+
+  if (!orderNumber || !status || !timestamp || !received_signature) {
+    console.log("[FEZ] Missing required webhook fields");
+
+    console.log("========== FEZ WEBHOOK END ==========");
+
+    return false;
+  }
+
+  // --------------------------------------------------
+  // SIGNATURE
+  // --------------------------------------------------
+
+  const signing_payload = `${orderNumber}${status}${timestamp}`;
+
+  console.log("[FEZ] Signing payload:", signing_payload);
+
+  const hash = crypto
+    .createHmac(
+      "sha256",
+      staging ? process.env.FEZ_TEST_TOKEN : process.env.FEZ_TOKEN,
+    )
+    .update(signing_payload)
+    .digest("hex");
+
+  console.log("[FEZ] Generated signature:", hash);
+
+  console.log("[FEZ] Received signature:", received_signature);
+
+  const signature_valid = hash === received_signature;
+
+  console.log("[FEZ] Signature valid:", signature_valid);
+
+  if (!signature_valid) {
+    console.log("[FEZ] Invalid webhook signature");
+
+    console.log("========== FEZ WEBHOOK END ==========");
+
+    return false;
+  }
+
+  // --------------------------------------------------
+  // TIMESTAMP
+  // --------------------------------------------------
+
+  const webhook_timestamp = Number(timestamp);
+
+  const now = Math.floor(Date.now() / 1000);
+
+  console.log("[FEZ] Webhook timestamp:", webhook_timestamp);
+
+  console.log("[FEZ] Current timestamp:", now);
+
+  // Optional replay protection.
+  // Allow a 5-minute clock difference.
+  const timestamp_difference = Math.abs(now - webhook_timestamp);
+
+  console.log("[FEZ] Timestamp difference:", timestamp_difference);
+
+  if (!Number.isFinite(webhook_timestamp) || timestamp_difference > 300) {
+    console.log("[FEZ] Webhook timestamp expired");
+
+    console.log("========== FEZ WEBHOOK END ==========");
+
+    return false;
+  }
+
+  // --------------------------------------------------
+  // UPDATE ORDER
+  // --------------------------------------------------
+
+  console.log("[FEZ] Updating ongoing order status...");
+
+  try {
+    const result = await update_ongoing_status(orderNumber, status, "fez", {
+      db,
+    });
+
+    console.log("[FEZ] update_ongoing_status result:", result);
+
+    console.log("========== FEZ WEBHOOK END ==========");
+
+    return result;
+  } catch (error) {
+    console.error("[FEZ] update_ongoing_status error:", error);
+
+    console.log("========== FEZ WEBHOOK END ==========");
+
+    return false;
+  }
+};
 
 export { estimate_fez, create_fez, webhook_fez };
