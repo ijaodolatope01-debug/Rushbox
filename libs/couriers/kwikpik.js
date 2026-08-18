@@ -186,7 +186,9 @@ const webhook_kwikpik = async (req, { staging }) => {
     return false;
   }
 
-  return await update_ongoing_status(request_id, status, "kwikpik");
+  return await update_ongoing_status(request_id, status, "kwikpik", {
+    db: req.db,
+  });
 };
 
 export { estimate_kwikpik, create_kwikpik, webhook_kwikpik };

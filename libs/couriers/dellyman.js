@@ -144,7 +144,7 @@ async function create_dellyman(details) {
     debug("Dellyman data:", data);
 
     if (data.ResponseMessage === "Success") {
-      reply.courier_key = data.OrderID;
+      reply.courier_key = data.OrderID.toString();
       reply.courier_response = data;
 
       debug("Dellyman parsed response:", data);

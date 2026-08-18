@@ -118,7 +118,9 @@ const webhook_chowdeck = async (req, { staging }) => {
 
   let id = data?.tracking?.[0]?.trackingId;
 
-  return await update_ongoing_status(id, status.split(".")[1], "chowdeck");
+  return await update_ongoing_status(id, status.split(".")[1], "chowdeck", {
+    db: req.db,
+  });
 };
 
 export { estimate_chowdeck, create_chowdeck, webhook_chowdeck };
