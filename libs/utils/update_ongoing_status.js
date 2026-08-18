@@ -46,6 +46,7 @@ const update_ongoing_status = async (courier_key, status, courier, { db }) => {
 
   console.log("[STATUS] Finding order with courier_key:", courier_key);
 
+  console.log("[STATUS] Order Preview:", await Orders.findOne({ courier_key }));
   update.status_message = STATUSES_MESSAGE[ongoing_status];
   const result = await Orders.findOneAndUpdate(
     { courier_key },
