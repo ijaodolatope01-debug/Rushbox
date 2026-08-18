@@ -125,6 +125,6 @@ async function create_fez(details) {
   return reply;
 }
 
-let webhook_fez = async () => {};
+let webhook_fez = async (req, { staging }) => {};
 
 export { estimate_fez, create_fez, webhook_fez };

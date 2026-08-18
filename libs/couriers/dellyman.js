@@ -157,7 +157,7 @@ async function create_dellyman(details) {
   return reply;
 }
 
-let webhook_dellyman = async ({ staging }) => {
+let webhook_dellyman = async (req, { staging }) => {
   let hash = crypto
     .createHmac(
       "sha256",

@@ -116,7 +116,7 @@ async function create_errandlr(details) {
   return reply;
 }
 
-const webhook_errandlr = async (req) => {
+const webhook_errandlr = async (req, { staging }) => {
   let { db } = req;
   console.log("========== ERRANDLR WEBHOOK START ==========");
 
@@ -128,7 +128,10 @@ const webhook_errandlr = async (req) => {
   console.log("[ERRANDLR] Received signature:", received_signature);
 
   const hash = crypto
-    .createHmac("sha512", process.env.ERRANDLR_TOKEN)
+    .createHmac(
+      "sha512",
+      staging ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN,
+    )
     .update(JSON.stringify(req.body))
     .digest("hex");
 

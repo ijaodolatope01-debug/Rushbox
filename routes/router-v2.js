@@ -335,6 +335,16 @@ const router = {
     security: "none",
     schema: { body: {} },
   },
+  "courier_webhook/:courier/staging": {
+    handler: courier_webhook,
+    security: "none",
+    schema: {
+      body: {},
+      query: {
+        staging: { default_value: true },
+      },
+    },
+  },
 
   // User webhook
   register_webhook: {

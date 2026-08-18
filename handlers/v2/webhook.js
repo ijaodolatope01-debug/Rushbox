@@ -9,7 +9,7 @@ import { hash } from "../../libs/utils/hash.js";
 const courier_webhook = async (req) => {
   console.log("========== COURIER WEBHOOK START ==========");
 
-  let { params, db, body, headers } = req;
+  let { params, db, body, headers, query } = req;
   let { courier } = params;
 
   console.log("[WEBHOOK] Params:", params);
@@ -37,7 +37,7 @@ const courier_webhook = async (req) => {
   let result;
 
   try {
-    result = await handler(req);
+    result = await handler(req, { staging });
     console.log("[WEBHOOK] Handler result:", result);
   } catch (error) {
     console.error("[WEBHOOK] Handler error:", error);
