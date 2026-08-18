@@ -3,6 +3,8 @@ import STATUSES_MAPS, { STATUSES_MESSAGE } from "../couriers/statuses_map.js";
 const update_ongoing_status = async (courier_key, status, courier, { db }) => {
   console.log("========== UPDATE ONGOING STATUS START ==========");
 
+  courier_key = courier_key.toString();
+
   console.log("[STATUS] Courier key:", courier_key);
   console.log("[STATUS] Incoming status:", status);
   console.log("[STATUS] Courier:", courier);
