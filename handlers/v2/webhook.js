@@ -37,7 +37,7 @@ const courier_webhook = async (req) => {
   let result;
 
   try {
-    result = await handler(req, { staging });
+    result = await handler(req, { staging: query.staging });
     console.log("[WEBHOOK] Handler result:", result);
   } catch (error) {
     console.error("[WEBHOOK] Handler error:", error);
