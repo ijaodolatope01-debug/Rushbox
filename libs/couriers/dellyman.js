@@ -159,26 +159,93 @@ async function create_dellyman(details) {
 }
 
 let webhook_dellyman = async (req, { staging }) => {
+  console.log("========== DELLYMAN WEBHOOK START ==========");
+
+  console.log("[DELLYMAN] Staging:", staging);
+  console.log("[DELLYMAN] Headers:", req.headers);
+  console.log("[DELLYMAN] Body:", req.body);
+
+  const token = staging
+    ? process.env.DELLYMAN_TEST_TOKEN
+    : process.env.DELLYMAN_TOKEN;
+
+  console.log("[DELLYMAN] Token configured:", !!token);
+
   let hash = crypto
-    .createHmac(
-      "sha256",
-      staging ? process.env.DELLYMAN_TEST_TOKEN : process.env.DELLYMAN_TOKEN,
-    )
+    .createHmac("sha256", token)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
+  console.log("[DELLYMAN] Generated signature:", hash);
+
+  const received_signature =
+    req.headers["X-Dellyman-Signature"] || req.headers["x-dellyman-signature"];
+
+  console.log("[DELLYMAN] Received signature:", received_signature);
+
+  console.log("[DELLYMAN] Signature valid:", hash === received_signature);
+
   let event = req.body;
+
+  console.log("[DELLYMAN] Event:", event);
+
   let { status, order } = event;
 
-  if (!status || hash != req.headers["X-Dellyman-Signature"]) {
+  console.log("[DELLYMAN] Status:", status);
+
+  console.log("[DELLYMAN] Order:", order);
+
+  if (!status) {
+    console.log("[DELLYMAN] Missing status");
+
+    console.log("========== DELLYMAN WEBHOOK END ==========");
+
     return false;
   }
 
-  // Retrieve the request's body
+  if (hash != received_signature) {
+    console.log("[DELLYMAN] Invalid signature");
+
+    console.log("========== DELLYMAN WEBHOOK END ==========");
+
+    return false;
+  }
 
   let id = order?.OrderID;
 
-  return await update_ongoing_status(id, order.OrderStatus, "dellyman");
+  console.log("[DELLYMAN] Order ID:", id);
+
+  console.log("[DELLYMAN] Order status:", order?.OrderStatus);
+
+  if (!id) {
+    console.log("[DELLYMAN] Missing OrderID");
+
+    console.log("========== DELLYMAN WEBHOOK END ==========");
+
+    return false;
+  }
+
+  console.log("[DELLYMAN] Calling update_ongoing_status...");
+
+  try {
+    const result = await update_ongoing_status(
+      id,
+      order.OrderStatus,
+      "dellyman",
+    );
+
+    console.log("[DELLYMAN] update_ongoing_status result:", result);
+
+    console.log("========== DELLYMAN WEBHOOK END ==========");
+
+    return result;
+  } catch (error) {
+    console.error("[DELLYMAN] update_ongoing_status error:", error);
+
+    console.log("========== DELLYMAN WEBHOOK END ==========");
+
+    return false;
+  }
 };
 
 export { estimate_dellyman, create_dellyman, webhook_dellyman };
