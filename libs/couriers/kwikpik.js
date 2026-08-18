@@ -1,3 +1,4 @@
+import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_kwikpik = async ({
@@ -9,6 +10,20 @@ const estimate_kwikpik = async ({
   destination_longitude,
 }) => {
   try {
+    let body = {
+      insured: false,
+      deliveryLocation: {
+        latitude: Number(destination_latitude),
+        longitude: Number(destination_longitude),
+        address: destination_address,
+      },
+      pickupLocation: {
+        latitude: Number(pickup_latitude),
+        longitude: Number(pickup_longitude),
+        address: pickup_address,
+      },
+    };
+    debug(body, process.env.KWIKPIK_TOKEN);
     const res = await fetch(
       "https://api.kwikpik.io/partners/requests/estimate",
       {
@@ -18,25 +33,13 @@ const estimate_kwikpik = async ({
           "Content-Type": "application/json",
           "x-api-key": process.env.KWIKPIK_TOKEN,
         },
-        body: JSON.stringify({
-          insured: false,
-          deliveryLocation: {
-            latitude: Number(destination_latitude),
-            longitude: Number(destination_longitude),
-            address: destination_address,
-          },
-          pickupLocation: {
-            latitude: Number(pickup_latitude),
-            longitude: Number(pickup_longitude),
-            address: pickup_address,
-          },
-        }),
+        body: JSON.stringify(body),
       },
     );
 
     const data = await res.json();
 
-    console.log(data);
+    console.log(data, "KWIKPIK");
     if (!data.result) return null;
 
     return {
@@ -44,7 +47,8 @@ const estimate_kwikpik = async ({
       price: data.result.total,
       duration: data.result.duration,
     };
-  } catch {
+  } catch (e) {
+    console.log(e);
     return null;
   }
 };

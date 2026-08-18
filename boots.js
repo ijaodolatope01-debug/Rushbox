@@ -6,7 +6,9 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  console.log(await (await db.collection("Webhooks")).deleteMany({}));
+  console.log(
+    await (await db.collection("Courier_webhook")).find({}).toArray(),
+  );
 };
 
 export { boots };

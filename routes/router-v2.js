@@ -344,11 +344,7 @@ const router = {
         courier: {
           type: "string",
           required: true,
-          enum: ["dhl", "dellyman", "fedex", "paystack"],
         },
-      },
-      query: {
-        signature: { type: "string", default_value: "bimpe" },
       },
       body: {},
     },
