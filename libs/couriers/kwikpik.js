@@ -144,9 +144,9 @@ async function create_kwikpik(details) {
   return reply;
 }
 
-const webhook_kwikpik = async (req, res) => {
+const webhook_kwikpik = async (req, { staging }) => {
   let sig = req.headers["x-kwikpik-signature"];
-  // console.log(sig, req.headers);
+
   if (sig) {
     const [timestampPart, signaturePart] = sig?.split(",");
     const timestamp = timestampPart.split("=")[1];
@@ -159,7 +159,10 @@ const webhook_kwikpik = async (req, res) => {
     }
 
     const expectedSignature = crypto
-      .createHmac("sha256", secret)
+      .createHmac(
+        "sha256",
+        staging ? process.env.KWIKPIK_TEST_TOKEN : process.env.KWIKPIK_TOKEN,
+      )
       .update(`${timestamp}.${JSON.stringify(payload)}`)
       .digest("hex");
 

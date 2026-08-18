@@ -99,9 +99,12 @@ async function create_chowdeck(details) {
   return reply;
 }
 
-const webhook_chowdeck = async (req, res) => {
+const webhook_chowdeck = async (req, { staging }) => {
   const hash = crypto
-    .createHmac("sha512", process.env.CHOW_TOKEN)
+    .createHmac(
+      "sha512",
+      staging ? process.env.CHOW_TEST_TOKEN : process.env.CHOWDECK_TOKEN,
+    )
     .update(JSON.stringify(req.body))
     .digest("hex");
 
