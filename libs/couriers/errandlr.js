@@ -102,7 +102,7 @@ async function create_errandlr(details) {
   return reply;
 }
 
-const webhook_errandlr = async (req, res) => {
+const webhook_errandlr = async (req) => {
   const hash = crypto
     .createHmac("sha512", process.env.ERRANDLR_TOKEN)
     .update(JSON.stringify(req.body))

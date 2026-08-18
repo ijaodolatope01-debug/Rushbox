@@ -18,7 +18,7 @@ const courier_webhook = async (req) => {
     return { ok: true, status: 200 };
   }
 
-  let result = await handler(req, res);
+  let result = await handler(req);
   if (!result) {
     return { status: 403 };
   }
