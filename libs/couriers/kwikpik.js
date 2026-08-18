@@ -11,27 +11,27 @@ const estimate_kwikpik = async ({
 }) => {
   try {
     let body = {
-      insured: false,
-      deliveryLocation: {
-        latitude: Number(destination_latitude),
-        longitude: Number(destination_longitude),
-        address: destination_address,
-      },
-      pickupLocation: {
-        latitude: Number(pickup_latitude),
-        longitude: Number(pickup_longitude),
-        address: pickup_address,
-      },
+      // insured: false,
+      packages: [
+        {
+          deliveryAddress: destination_address,
+        },
+      ],
+      pickupAddress: pickup_address,
     };
     debug(body, process.env.KWIKPIK_TOKEN);
     const res = await fetch(
-      "https://api.kwikpik.io/partners/requests/estimate",
+      process.env.STAGING
+        ? "https://logistics-sandbox.kwikpik.io/api/v2/orders/estimate"
+        : "https://logistics-api.kwikpik.io/api/v2/orders/estimate",
       {
         method: "POST",
         headers: {
           accept: "application/json",
           "Content-Type": "application/json",
-          "x-api-key": process.env.KWIKPIK_TOKEN,
+          "x-api-key": process.env.STAGING
+            ? process.env.KWIKPIK_TEST_TOKEN
+            : process.env.KWIKPIK_TOKEN,
         },
         body: JSON.stringify(body),
       },
@@ -40,12 +40,12 @@ const estimate_kwikpik = async ({
     const data = await res.json();
 
     console.log(data, "KWIKPIK");
-    if (!data.result) return null;
+    if (!data.data) return null;
 
     return {
       courier: "kwikpik",
-      price: data.result.total,
-      duration: data.result.duration,
+      price: data.data.totalEstimatedPrice,
+      duration: data.data.totalEstimatedDuration,
     };
   } catch (e) {
     console.log(e);
@@ -70,6 +70,9 @@ async function create_kwikpik(details) {
     order_name,
     value_of_item,
     package_weight,
+    delivery_note,
+    recipient_email,
+    reference,
   } = details;
 
   let reply = {};
@@ -77,38 +80,49 @@ async function create_kwikpik(details) {
 
   try {
     let payload = {
-      vehicleType: "motorcycle",
-      deliveryLocation: {
-        latitude: Number(destination_latitude),
-        longitude: Number(destination_longitude),
-        address: destination_address,
-      },
-      pickupLocation: {
-        latitude: pickup_latitude,
-        longitude: pickup_longitude,
-        address: pickup_address,
-      },
-      senderName: sender_name,
-      senderEmail: sender_email,
-      senderPhoneNumber: sender_phone,
-      recipientName: recipient_name,
-      recipientPhoneNumber: recipient_phone,
-      description: package_detail,
-      itemCategory: order_name,
-      itemValue: value_of_item,
-      itemWeight: package_weight,
-      itemName: order_name,
-      insured: false,
+      orders: [
+        {
+          merchantPackageNumber: reference || crypto.randomUUID(),
+          pickupAddress: pickup_address,
+          pickupLatitude: pickup_latitude,
+          pickupLongitude: pickup_longitude,
+          pickupContactName: sender_name,
+          pickupContactPhone: sender_phone,
+          pickupContactEmail: sender_email,
+          deliveryAddress: destination_address,
+          deliveryLatitude: destination_latitude,
+          deliveryLongitude: destination_longitude,
+          deliveryContactName: recipient_name,
+          deliveryContactPhone: recipient_phone,
+          deliveryContactEmail: recipient_email,
+          deliveryNotes: delivery_note,
+          description: package_detail,
+          packageWeightInKg: package_weight,
+          quantity: 1,
+          packageValue: value_of_item,
+          items: [
+            {
+              name: order_name,
+              quantity: 1,
+            },
+          ],
+          metadata: {},
+        },
+      ],
     };
 
     const response = await fetch(
-      "https://api.kwikpik.io/partners/requests/initiate",
+      process.env.STAGING
+        ? "https://logistics-sandbox.kwikpik.io/api/v2/orders/unified"
+        : "https://logistics-api.kwikpik.io/api/v2/orders/unified",
       {
         method: "POST",
         headers: {
           accept: "application/json",
           "Content-Type": "application/json",
-          "x-api-key": process.env.KWIKPIK_TOKEN,
+          "x-api-key": process.env.STAGING
+            ? process.env.KWIKPIK_TEST_TOKEN
+            : process.env.KWIKPIK_TOKEN,
         },
         body: JSON.stringify(payload),
       },
@@ -116,8 +130,11 @@ async function create_kwikpik(details) {
 
     data = await response.json();
 
-    if (data.result) {
-      reply.courier_key = data?.result?.id;
+    data = data?.data;
+    debug(JSON.stringify(data, null, 2), "kpk");
+
+    if (data.successful) {
+      reply.courier_key = data?.successful?.[0].packageInformation?.trackingId;
       reply.courier_response = data?.result;
     }
   } catch (error) {

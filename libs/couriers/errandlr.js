@@ -1,25 +1,32 @@
+import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 import crypto from "crypto"; // added import
 
 const estimate_errandlr = async ({ pickup_address, destination_address }) => {
   try {
-    const response = await fetch("https://commerce.errandlr.com/v2/estimate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.ERRANDLR_TOKEN}`,
+    const response = await fetch(
+      process.env.STAGING
+        ? "https://green.errandlr.com/v2/estimate"
+        : "https://commerce.errandlr.com/v2/estimate",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
+        },
+        body: JSON.stringify({
+          dropoffLocations: [
+            { id: destination_address, label: destination_address },
+          ],
+          pickupLocation: { id: pickup_address, label: pickup_address },
+        }),
       },
-      body: JSON.stringify({
-        dropoffLocations: [
-          { id: destination_address, label: destination_address },
-        ],
-        pickupLocation: { id: pickup_address, label: pickup_address },
-      }),
-    });
+    );
 
     const data = await response.json();
 
+    debug(data, "errandlr");
     if (data.status === "success") {
       return {
         courier: "errandlr",
@@ -28,7 +35,9 @@ const estimate_errandlr = async ({ pickup_address, destination_address }) => {
         meta: { geoid: data.geoId },
       };
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log(e, "errand");
+  }
 
   return null;
 };
@@ -57,36 +66,41 @@ async function create_errandlr(details) {
   let data;
 
   try {
-    const response = await fetch("https://commerce.errandlr.com/request", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.ERRANDLR_TOKEN}`,
+    const response = await fetch(
+      process.env.STAGING
+        ? "https://green.errandlr.com/request"
+        : "https://commerce.errandlr.com/request",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
+        },
+        body: JSON.stringify({
+          geoId: geoid,
+          name: sender_name,
+          email: sender_email,
+          phone: sender_phone,
+          latitude: destination_latitude,
+          longitude: destination_longitude,
+          pickupNotes: pickup_notes,
+          deliverToInformation: [
+            {
+              order: 1,
+              name: order_name,
+              phone: recipient_phone,
+              packageDetail: package_detail,
+              deliveryNotes: delivery_notes,
+            },
+          ],
+          state: destination_state,
+          country: destination_country,
+          city: destination_city,
+          localGovt: local_govt,
+        }),
       },
-      body: JSON.stringify({
-        geoId: geoid,
-        name: sender_name,
-        email: sender_email,
-        phone: sender_phone,
-        latitude: destination_latitude,
-        longitude: destination_longitude,
-        pickupNotes: pickup_notes,
-        deliverToInformation: [
-          {
-            order: 1,
-            name: order_name,
-            phone: recipient_phone,
-            packageDetail: package_detail,
-            deliveryNotes: delivery_notes,
-          },
-        ],
-        state: destination_state,
-        country: destination_country,
-        city: destination_city,
-        localGovt: local_govt,
-      }),
-    });
+    );
 
     data = await response.json();
     console.log(data);

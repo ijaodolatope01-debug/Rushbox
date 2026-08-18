@@ -4,21 +4,26 @@ import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 let estimate_dellyman = async ({ pickup_address, destination_address }) => {
   try {
-    let res = await fetch("https://dev.dellyman.com/api/v3.0/GetQuotes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.DELLYMAN_TOKEN}`,
+    let res = await fetch(
+      process.env.STAGING
+        ? "https://dev.dellyman.com/api/v3.0/GetQuotes"
+        : "https://dellyman.com/api/v3.0/GetQuotes",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.STAGING ? process.env.DELLYMAN_TEST_TOKEN : process.env.DELLYMAN_TOKEN}`,
+        },
+        body: JSON.stringify({
+          PaymentMode: "online",
+          Vehicle: "Bike",
+          PickupRequestedTime: thirty_mins(),
+          PickupRequestedDate: new Date().toLocaleDateString(),
+          PickupAddress: pickup_address,
+          DeliveryAddress: [destination_address],
+        }),
       },
-      body: JSON.stringify({
-        PaymentMode: "online",
-        Vehicle: "Bike",
-        PickupRequestedTime: thirty_mins(),
-        PickupRequestedDate: new Date().toLocaleDateString(),
-        PickupAddress: pickup_address,
-        DeliveryAddress: [destination_address],
-      }),
-    });
+    );
 
     let data = await res.json();
     debug(data, "delly mom");
@@ -100,17 +105,22 @@ async function create_dellyman(details) {
 
     debug("Dellyman request:", payload);
 
-    const res = await fetch("https://dev.dellyman.com/api/v3.0/BookOrder", {
-      method: "POST",
+    const res = await fetch(
+      process.env.STAGING
+        ? "https://dev.dellyman.com/api/v3.0/BookOrder"
+        : "https://dellyman.com/api/v3.0/BookOrder",
+      {
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.DELLYMAN_TOKEN}`,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${process.env.STAGING ? process.env.DELLYMAN_TEST_TOKEN : process.env.DELLYMAN_TOKEN}`,
+        },
+
+        body: JSON.stringify(payload),
       },
-
-      body: JSON.stringify(payload),
-    });
+    );
 
     const responseText = await res.text();
 
@@ -147,9 +157,12 @@ async function create_dellyman(details) {
   return reply;
 }
 
-let webhook_dellyman = async () => {
+let webhook_dellyman = async ({ staging }) => {
   let hash = crypto
-    .createHmac("sha256", process.env.DELLYMAN_TOKEN)
+    .createHmac(
+      "sha256",
+      staging ? process.env.DELLYMAN_TEST_TOKEN : process.env.DELLYMAN_TOKEN,
+    )
     .update(JSON.stringify(req.body))
     .digest("hex");
 

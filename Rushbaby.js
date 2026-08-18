@@ -22,7 +22,7 @@ let gp = new GodProtocol({
 router(gp, { services_config });
 
 gp.callback({
-  after: async ({ route, db, result }) => {
+  after: async ({ route, db, result, req }) => {
     let Webhooks = await db.folder("Webhooks");
     if (route === "courier_webhook/:courier" && result?.data) {
       let { order: payload } = result?.data;
@@ -45,7 +45,9 @@ gp.callback({
       }
     } else if (route === "create_delivery") {
       let { data } = result;
-      let webhook = await Webhooks.findOne({ profile: data.profile });
+      let { headers } = req;
+
+      let webhook = await Webhooks.findOne({ profile: headers?.profile?._id });
       debug(webhook);
       if (webhook) {
         let body = JSON.stringify({

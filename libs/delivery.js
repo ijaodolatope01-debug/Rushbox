@@ -87,7 +87,7 @@ function normalise_order_response(data, details, courier) {
     delivery_fare: details.delivery_fare,
     courier: courier.name,
     courier_tracking: courier.tracking,
-    order_id: data.rushbox_id,
+    order_id: data?.rushbox_id,
   };
 
   return norm;

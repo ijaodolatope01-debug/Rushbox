@@ -1,16 +1,18 @@
 const authenticate_fez = async () => {
   let auth = await fetch(
-    "https://apisandbox.fezdelivery.co/v1/user/authenticate",
+    process.env.STAGING
+      ? "https://apisandbox.fezdelivery.co/v1/user/authenticate"
+      : "https://api.fezdelivery.co/v1/user/authenticate",
     {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        user_id: "ijaodolatope@gmail.com",
+        user_id: process.env.TOPE_EMAIL,
         password: process.env.FEZ_PASSWORD,
       }),
-    }
+    },
   );
   auth = await auth.json();
 
@@ -31,7 +33,7 @@ const authenticate_kwik = async () => {
         password: process.env.KWIK_PASSWORD,
         api_login: 1,
       }),
-    }
+    },
   );
 
   auth = await auth.json();

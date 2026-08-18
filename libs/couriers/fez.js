@@ -7,33 +7,28 @@ let estimate_fez = async ({
   destination_state,
 }) => {
   try {
-    let auth = await fetch(
-      "https://apisandbox.fezdelivery.co/v1/user/authenticate",
+    let auth = await authenticate_fez();
+
+    let res = await fetch(
+      process.env.STAGING
+        ? "https://apisandbox.fezdelivery.co/v1/order/cost"
+        : "https://api.fezdelivery.co/v1/order/cost",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.authDetails.authToken}`,
+          "secret-key": process.env.STAGING
+            ? process.env.FEZ_TEST_TOKEN
+            : process.env.FEZ_TOKEN,
+        },
         body: JSON.stringify({
-          user_id: process.env.TOPE_EMAIL,
-          password: process.env.FEZ_PASSWORD,
+          weight: package_weight,
+          pickUpState: pickup_state,
+          state: destination_state,
         }),
       },
     );
-
-    auth = await auth.json();
-
-    let res = await fetch("https://apisandbox.fezdelivery.co/v1/order/cost", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.authDetails.authToken}`,
-        "secret-key": process.env.FEZ_TOKEN,
-      },
-      body: JSON.stringify({
-        weight: package_weight,
-        pickUpState: pickup_state,
-        state: destination_state,
-      }),
-    });
 
     let data = await res.json();
     console.log(data);
@@ -41,7 +36,7 @@ let estimate_fez = async ({
 
     return {
       courier: "fez",
-      price: data.Cost.cost,
+      price: data.totalCost,
     };
   } catch (e) {
     console.log(e);
@@ -83,29 +78,36 @@ async function create_fez(details) {
   try {
     let auth = await authenticate_fez();
 
-    let response = await fetch("https://apisandbox.fezdelivery.co/v1/order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth.authDetails.authToken}`,
-        "secret-key": process.env.FEZ_TOKEN,
-      },
-      body: JSON.stringify([
-        {
-          recipientAddress: destination_address,
-          recipientState: destination_state,
-          recipientName: recipient_name,
-          recipientPhone: recipient_phone,
-          uniqueID: reference,
-          BatchID: reference,
-          valueOfItem: value_of_item,
-          weight: package_weight,
-          additionalDetails: package_detail,
-          pickUpState: pickup_state,
-          pickUpAddress: pickup_address,
+    let response = await fetch(
+      process.env.STAGING
+        ? "https://apisandbox.fezdelivery.co/v1/order"
+        : "https://api.fezdelivery.co/v1/order",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.authDetails.authToken}`,
+          "secret-key": process.env.STAGING
+            ? process.env.FEZ_TEST_TOKEN
+            : process.env.FEZ_TOKEN,
         },
-      ]),
-    });
+        body: JSON.stringify([
+          {
+            recipientAddress: destination_address,
+            recipientState: destination_state,
+            recipientName: recipient_name,
+            recipientPhone: recipient_phone,
+            uniqueID: reference,
+            BatchID: reference,
+            valueOfItem: value_of_item,
+            weight: package_weight,
+            additionalDetails: package_detail,
+            pickUpState: pickup_state,
+            pickUpAddress: pickup_address,
+          },
+        ]),
+      },
+    );
 
     data = await response.json();
 

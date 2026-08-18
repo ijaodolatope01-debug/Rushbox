@@ -1,3 +1,4 @@
+import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 
 const estimate_chowdeck = async ({
@@ -12,7 +13,7 @@ const estimate_chowdeck = async ({
       headers: {
         accept: "application/json",
         "content-type": "application/json",
-        Authorization: `Bearer ${process.env.CHOW_TOKEN}`,
+        Authorization: `Bearer ${process.env.STAGING ? process.env.CHOW_TEST_TOKEN : process.env.CHOWDECK_TOKEN}`,
       },
       body: JSON.stringify({
         source_address: {
@@ -62,7 +63,7 @@ async function create_chowdeck(details) {
       headers: {
         accept: "application/json",
         "content-type": "application/json",
-        Authorization: `Bearer ${process.env.CHOW_TOKEN}`,
+        Authorization: `Bearer ${process.env.STAGING ? process.env.CHOW_TEST_TOKEN : process.env.CHOWDECK_TOKEN}`,
       },
       body: JSON.stringify({
         destination_contact: {
@@ -85,11 +86,13 @@ async function create_chowdeck(details) {
     });
 
     data = await response.json();
+    debug(data, "showdec");
     data = data?.data || data;
 
     reply.courier_key = data?.id;
     reply.courier_response = data;
   } catch (e) {
+    console.log(e);
     reply.message = e.message;
   }
 
