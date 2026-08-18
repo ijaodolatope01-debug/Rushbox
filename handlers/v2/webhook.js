@@ -7,15 +7,21 @@ import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { hash } from "../../libs/utils/hash.js";
 
 const courier_webhook = async (req) => {
-  let { params, query } = req;
+  let { params, db, body, headers } = req;
   let { courier } = params;
 
-  debug(params, query);
+  console.log(headers, params);
+  await (
+    await db.folder("Courier_webhook")
+  ).insertOne({
+    _id: crypto.randomUUID(),
+    body,
+    params,
+    created: Date.now(),
+  });
 
   return {
     ok: true,
-    message: "Good",
-    data: { params, query },
   };
   let handler = webhook_courier[courier];
 
