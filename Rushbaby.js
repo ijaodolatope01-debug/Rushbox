@@ -25,7 +25,7 @@ gp.callback({
   after: async ({ route, db, result }) => {
     let Webhooks = await db.folder("Webhooks");
     if (route === "courier_webhook/:courier" && result?.data) {
-      let { payload } = result?.data;
+      let { order: payload } = result?.data;
       let webhook = await Webhooks.findOne({ profile: payload.user_id });
       debug(webhook);
       if (webhook) {
