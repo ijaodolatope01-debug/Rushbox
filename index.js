@@ -7,6 +7,6 @@ let server = http.createServer(handler);
 let port = process.env.PORT || 4000;
 
 server.listen(port, "0.0.0.0", async () => {
-  boots();
+  // boots();
   console.log(`Rushbox is listening on http://localhost:${port}`);
 });
