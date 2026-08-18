@@ -232,6 +232,9 @@ let webhook_dellyman = async (req, { staging }) => {
       id,
       order.OrderStatus,
       "dellyman",
+      {
+        db: req.db,
+      },
     );
 
     console.log("[DELLYMAN] update_ongoing_status result:", result);
