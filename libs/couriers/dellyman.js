@@ -166,8 +166,8 @@ let webhook_dellyman = async (req, { staging }) => {
   console.log("[DELLYMAN] Body:", req.body);
 
   const token = staging
-    ? process.env.DELLYMAN_TEST_TOKEN
-    : process.env.DELLYMAN_TOKEN;
+    ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
+    : process.env.DELLYMAN_WEBHOOK_SECRET;
 
   console.log("[DELLYMAN] Token configured:", !!token);
 
