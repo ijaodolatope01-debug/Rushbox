@@ -330,24 +330,10 @@ const router = {
   },
 
   // Courier webhook
-  // "courier_webhook/:courier": {
-  //   handler: courier_webhook,
-  //   security: "none",
-  //   schema: { body: {} },
-  // },
-
   "courier_webhook/:courier": {
     handler: courier_webhook,
     security: "none",
-    schema: {
-      params: {
-        courier: {
-          type: "string",
-          required: true,
-        },
-      },
-      body: {},
-    },
+    schema: { body: {} },
   },
 
   // User webhook

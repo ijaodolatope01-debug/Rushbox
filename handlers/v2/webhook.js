@@ -11,18 +11,7 @@ const courier_webhook = async (req) => {
   let { courier } = params;
 
   console.log(headers, params);
-  await (
-    await db.folder("Courier_webhook")
-  ).insertOne({
-    _id: crypto.randomUUID(),
-    body,
-    params,
-    created: Date.now(),
-  });
 
-  return {
-    ok: true,
-  };
   let handler = webhook_courier[courier];
 
   if (!handler) {

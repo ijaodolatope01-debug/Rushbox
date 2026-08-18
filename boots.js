@@ -7,7 +7,11 @@ const boots = async () => {
   });
 
   console.log(
-    await (await db.collection("Courier_webhook")).find({}).toArray(),
+    JSON.stringify(
+      await (await db.collection("Courier_webhook")).find({}).toArray(),
+      null,
+      2,
+    ),
   );
 };
 
