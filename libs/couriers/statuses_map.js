@@ -1,7 +1,7 @@
 const STATUSES_MAPS = {
   errandlr: {
     CREATED: 2,
-    ACCPETED: 4,
+    ACCEPTED: 4,
     COLLECTED: 7,
     COMPLETED: 10,
     CLOSED: 10,
