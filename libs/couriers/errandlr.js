@@ -103,22 +103,70 @@ async function create_errandlr(details) {
 }
 
 const webhook_errandlr = async (req) => {
+  console.log("========== ERRANDLR WEBHOOK START ==========");
+
+  console.log("[ERRANDLR] Headers:", req.headers);
+  console.log("[ERRANDLR] Body:", req.body);
+
+  const received_signature = req.headers["x-errandlr-signature"];
+
+  console.log("[ERRANDLR] Received signature:", received_signature);
+
   const hash = crypto
     .createHmac("sha512", process.env.ERRANDLR_TOKEN)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  if (hash != req.headers["x-errandlr-signature"]) {
+  console.log("[ERRANDLR] Generated hash:", hash);
+  console.log("[ERRANDLR] Signature match:", hash === received_signature);
+
+  if (hash != received_signature) {
+    console.log("[ERRANDLR] Invalid webhook signature");
+    console.log("========== ERRANDLR WEBHOOK END ==========");
+
     return false;
   }
 
+  console.log("[ERRANDLR] Webhook signature verified");
+
   // Retrieve the request's body
   const event = req.body;
+
+  console.log("[ERRANDLR] Event:", event);
+
   let { status, data } = event;
+
+  console.log("[ERRANDLR] Status:", status);
+  console.log("[ERRANDLR] Data:", data);
 
   let id = data?.tracking?.[0]?.trackingId;
 
-  return await update_ongoing_status(id, status.split(".")[1], "errandlr");
+  console.log("[ERRANDLR] Tracking ID:", id);
+
+  const status_parts = status?.split(".");
+  console.log("[ERRANDLR] Status parts:", status_parts);
+
+  const ongoing_status = status_parts?.[1];
+
+  console.log("[ERRANDLR] Ongoing status:", ongoing_status);
+
+  console.log("[ERRANDLR] Updating ongoing status...");
+
+  try {
+    const result = await update_ongoing_status(id, ongoing_status, "errandlr");
+
+    console.log("[ERRANDLR] update_ongoing_status result:", result);
+
+    console.log("========== ERRANDLR WEBHOOK END ==========");
+
+    return result;
+  } catch (error) {
+    console.error("[ERRANDLR] update_ongoing_status error:", error);
+
+    console.log("========== ERRANDLR WEBHOOK END ==========");
+
+    return false;
+  }
 };
 
 export { estimate_errandlr, create_errandlr, webhook_errandlr };

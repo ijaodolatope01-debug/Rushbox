@@ -7,36 +7,89 @@ import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { hash } from "../../libs/utils/hash.js";
 
 const courier_webhook = async (req) => {
+  console.log("========== COURIER WEBHOOK START ==========");
+
   let { params, db, body, headers } = req;
   let { courier } = params;
 
-  console.log(headers, params);
+  console.log("[WEBHOOK] Params:", params);
+  console.log("[WEBHOOK] Courier:", courier);
+  console.log("[WEBHOOK] Headers:", headers);
+  console.log("[WEBHOOK] Body:", body);
+  console.log("[WEBHOOK] DB available:", !!db);
 
   let handler = webhook_courier[courier];
 
+  console.log("[WEBHOOK] Handler found:", !!handler);
+
   if (!handler) {
-    return { ok: true, status: 200 };
+    console.log("[WEBHOOK] No handler for courier:", courier);
+    console.log("========== COURIER WEBHOOK END ==========");
+
+    return {
+      ok: true,
+      status: 200,
+    };
   }
 
-  let result = await handler(req);
-  if (!result) {
-    return { status: 403 };
+  console.log("[WEBHOOK] Calling courier handler...");
+
+  let result;
+
+  try {
+    result = await handler(req);
+    console.log("[WEBHOOK] Handler result:", result);
+  } catch (error) {
+    console.error("[WEBHOOK] Handler error:", error);
+    console.log("========== COURIER WEBHOOK END ==========");
+
+    return {
+      ok: false,
+      status: 500,
+    };
   }
+
+  if (!result) {
+    console.log("[WEBHOOK] Handler returned no result");
+    console.log("========== COURIER WEBHOOK END ==========");
+
+    return {
+      status: 403,
+    };
+  }
+
+  console.log("[WEBHOOK] Handler succeeded");
 
   if (result?.order) {
+    console.log("[WEBHOOK] Order found:", result.order);
+
     let { user_id, ongoing_status, _id } = result.order;
-    await send_notification(
+
+    console.log("[WEBHOOK] Order ID:", _id);
+    console.log("[WEBHOOK] User ID:", user_id);
+    console.log("[WEBHOOK] Ongoing status:", ongoing_status);
+    console.log("[WEBHOOK] Status timestamp:", result.order[ongoing_status]);
+
+    const notification = {
+      title: "Order status",
+      text: STATUSES_MESSAGE[ongoing_status],
+      _id: crypto.randomUUID(),
+      type: "ongoing_order",
       user_id,
-      {
-        title: "Order status",
-        text: STATUSES_MESSAGE[ongoing_status],
-        _id: crypto.randomUUID(),
-        type: "ongoing_order",
-        user_id,
-        data: { order_id: _id },
+      data: {
+        order_id: _id,
       },
-      req,
-    );
+    };
+
+    console.log("[WEBHOOK] Sending notification:", notification);
+
+    try {
+      await send_notification(user_id, notification, req);
+
+      console.log("[WEBHOOK] Notification sent successfully");
+    } catch (error) {
+      console.error("[WEBHOOK] Notification error:", error);
+    }
 
     let payload = {
       order_id: _id,
@@ -44,21 +97,41 @@ const courier_webhook = async (req) => {
       ongoing_status,
       time: result.order[ongoing_status],
     };
+
+    console.log("[WEBHOOK] Live event payload:", payload);
+
     try {
-      await fetch(`https://livechat.rushbox.biz/send_event`, {
-        method: "POST",
-        headers: {
-          "Content-type": "application/json",
-          Accept: "application/json",
+      const livechat_response = await fetch(
+        `https://livechat.rushbox.biz/send_event`,
+        {
+          method: "POST",
+          headers: {
+            "Content-type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            user: user_id,
+            name: "ongoing_order_status",
+            payload,
+          }),
         },
-        body: JSON.stringify({
-          user: user_id,
-          name: "ongoing_order_status",
-          payload,
-        }),
-      });
-    } catch {}
+      );
+
+      console.log("[WEBHOOK] Livechat status:", livechat_response.status);
+
+      const livechat_text = await livechat_response.text();
+
+      console.log("[WEBHOOK] Livechat response:", livechat_text);
+    } catch (error) {
+      console.error("[WEBHOOK] Livechat error:", error);
+    }
+  } else {
+    console.log("[WEBHOOK] No order in handler result");
   }
+
+  console.log("[WEBHOOK] Returning success");
+  console.log("========== COURIER WEBHOOK END ==========");
+
   return {
     ok: true,
     status: 200,
