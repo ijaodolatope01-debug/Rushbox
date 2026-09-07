@@ -1,12 +1,21 @@
 import { handle_bank_account } from "../../libs/utils/payment_gateway.js";
 import { generate_random_string } from "../../libs/utils/user.js";
 import { hash } from "../v1/auth.js";
+import { debug } from "./delivery.js";
 
 const CONTINUATION_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
 
 const request_otp = async (req) => {
   let { body, db, services } = req;
   let { phone } = body;
+
+  if (phone === process.env.RUSHBOX_DEFAULT_PHONE) {
+    return {
+      ok: true,
+      message: "OTP sent successfully",
+      data: { phone },
+    };
+  }
 
   // let reslt = await request_otp_(phone, user_id);
   let Profile = await services("profiles");
@@ -87,6 +96,27 @@ const signin = async (req) => {
   let { body, services, db } = req;
   let { code, phone } = body;
 
+  let Profile = await services("profiles");
+
+  if (phone === process.env.RUSHBOX_DEFAULT_PHONE) {
+    let res = await Profile.call("get_profile", {
+      profile_type: process.env.USER_PROFILE_TYPE,
+      _id: process.env.RUSHBOX_DEFAULT_USER_ID,
+    });
+
+    debug(res, "default user profile response");
+    return res.ok
+      ? {
+          ok: true,
+          message: "Signed in successfully",
+          data: res.data,
+        }
+      : {
+          ok: false,
+          message: "Failed to sign in",
+        };
+  }
+
   let Cont_tokens = await db.folder("Rus:continuation_tokens");
 
   let val = await Cont_tokens.findOne({ phone });
@@ -97,8 +127,6 @@ const signin = async (req) => {
       message: "Code not found",
     };
   }
-
-  let Profile = await services("profiles");
 
   let response = await Profile.call(
     val.type === "signin" ? "two_factor_signin" : "two_factor_signup",

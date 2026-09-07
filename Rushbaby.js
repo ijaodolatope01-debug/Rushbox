@@ -255,7 +255,6 @@ gp.callback({
                 },
               },
             }),
-            "AIMAIL",
           );
         }
       } catch (error) {

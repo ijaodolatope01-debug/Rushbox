@@ -55,6 +55,7 @@ import {
   transactions,
   withdraw,
 } from "../handlers/v2/wallets.js";
+import { contact, newsletter, partnership_form } from "../handlers/v2/web.js";
 import {
   courier_webhook,
   paystack_webhook_events_listener,
@@ -546,6 +547,56 @@ const router = {
       body: {
         session_id: { type: "string", required: true },
         agent_id: { type: "string", required: true },
+      },
+    },
+  },
+
+  // Web
+  contact: {
+    handler: contact,
+    security: "none",
+    schema: {
+      body: {
+        name: { type: "string", required: true },
+        email: { type: "string", required: true },
+        subject: { type: "string" },
+        message: { type: "string", required: true },
+      },
+    },
+  },
+
+  partnership_form: {
+    handler: partnership_form,
+    security: "none",
+    schema: {
+      body: {
+        company_name: { type: "string", required: true },
+        registered_business_address: { type: "string", required: true },
+        contact_person: { type: "string", required: true },
+        phone: { type: "string", required: true },
+      },
+    },
+  },
+
+  contact: {
+    handler: contact,
+    security: "none",
+    schema: {
+      body: {
+        name: { type: "string", required: true },
+        email: { type: "string", required: true },
+        subject: { type: "string" },
+        message: { type: "string", required: true },
+      },
+    },
+  },
+
+  newsletter: {
+    handler: newsletter,
+    security: "none",
+    schema: {
+      body: {
+        email: { type: "string", required: true },
       },
     },
   },
