@@ -69,7 +69,7 @@ const contact = async (req) => {
 
   const res = await Aimail.call("send_mail", {
     from: `${name}`,
-    to: "corporate@rushboxapp.com",
+    to: process.env.RUSHBOX_EMAIL,
     content: {
       template: "contact_form",
       params: {
@@ -130,7 +130,7 @@ const partnership_form = async (req) => {
 
   const res = await Aimail.call("send_mail", {
     from: "Rushbox Website",
-    to: "corporate@rushboxapp.com",
+    to: process.env.RUSHBOX_EMAIL,
     content: {
       template: "partnership_form",
       params: {
