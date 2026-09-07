@@ -99,6 +99,12 @@ const signin = async (req) => {
   let Profile = await services("profiles");
 
   if (phone === process.env.RUSHBOX_DEFAULT_PHONE) {
+    if (!code || code !== process.env.RUSHBOX_DEFAULT_OTP) {
+      return {
+        ok: false,
+        message: "Invalid OTP",
+      };
+    }
     let res = await Profile.call("get_profile", {
       profile_type: process.env.USER_PROFILE_TYPE,
       _id: process.env.RUSHBOX_DEFAULT_USER_ID,
