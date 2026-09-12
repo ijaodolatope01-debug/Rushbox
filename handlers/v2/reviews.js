@@ -1,55 +1,4 @@
-const get_courier_ratings = async (courier, db) => {
-  if (!courier) {
-    return;
-  }
-
-  const Reviews = await db.folder("Reviews");
-  const agg = await Reviews.aggregate([
-    { $match: { courier } },
-    {
-      $facet: {
-        summary: [
-          {
-            $group: {
-              _id: null,
-              total: { $sum: 1 },
-              avgRating: { $avg: "$rating" },
-              minRating: { $min: "$rating" },
-              maxRating: { $max: "$rating" },
-            },
-          },
-          { $project: { _id: 0 } },
-        ],
-        distribution: [
-          { $group: { _id: "$rating", count: { $sum: 1 } } },
-          { $sort: { _id: -1 } },
-        ],
-      },
-    },
-  ]).toArray();
-
-  const { summary = [], distribution = [] } = agg[0] || {};
-  const s = summary[0] || {
-    total: 0,
-    avgRating: 0,
-    minRating: null,
-    maxRating: null,
-  };
-
-  // normalize distribution to keys 1..5
-  const distMap = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-  distribution.forEach((d) => {
-    if (d && d._id != null) distMap[String(d._id)] = d.count;
-  });
-
-  return {
-    total: s.total,
-    avg: Number((s.avgRating || 0).toFixed(2)),
-    min: s.minRating,
-    max: s.maxRating,
-    distribution: distMap,
-  };
-};
+import { get_courier_ratings } from "../../libs/ratings.js";
 
 const courier_stats = async (req) => {
   let { body, db, headers } = req;
@@ -70,13 +19,26 @@ const courier_stats = async (req) => {
 const add_review = async (req) => {
   let { headers, db, body } = req;
   let { profile } = headers;
-  const { courier, rating, orderid, comment } = body;
+  const { courier, orderid, comment } = body;
 
-  if (!courier || !rating) {
+  // `rating` used to go straight into the DB with no validation, which is
+  // how fractional values like 3.3/2.7 ended up in Reviews and then leaked
+  // into the distribution buckets as their own keys instead of 1..5.
+  const rating = Number(body.rating);
+
+  if (!courier || !body.rating) {
     return {
       ok: false,
       status: 401,
       message: "Courier and rating are required",
+    };
+  }
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Rating must be a whole number between 1 and 5",
     };
   }
 

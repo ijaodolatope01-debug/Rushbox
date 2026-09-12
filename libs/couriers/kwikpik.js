@@ -163,7 +163,7 @@ const webhook_kwikpik = async (req, { staging }) => {
         "sha256",
         staging ? process.env.KWIKPIK_TEST_TOKEN : process.env.KWIKPIK_TOKEN,
       )
-      .update(`${timestamp}.${JSON.stringify(payload)}`)
+      .update(`${timestamp}.${JSON.stringify(req.body)}`)
       .digest("hex");
 
     if (
