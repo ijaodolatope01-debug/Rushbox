@@ -152,6 +152,40 @@ const add_bank_account = async (req) => {
   }
 };
 
+const validate_bank_account = async (req) => {
+  const { body } = req;
+
+  const { account_number, bank_code } = body;
+
+  if (!account_number || !bank_code) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Account number and bank code are required",
+    };
+  }
+
+  try {
+    const account = await resolve_bank_account(account_number, bank_code);
+
+    return {
+      ok: true,
+      message: "Account resolved successfully",
+      data: {
+        account_number: account.account_number,
+        account_name: account.account_name,
+        bank_code,
+      },
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      status: 400,
+      message: err.message || "Unable to resolve account",
+    };
+  }
+};
+
 const withdraw = async (req) => {
   const { headers, db, body } = req;
   const { profile } = headers;
@@ -323,4 +357,5 @@ export {
   withdraw,
   get_banks,
   add_bank_account,
+  validate_bank_account,
 };

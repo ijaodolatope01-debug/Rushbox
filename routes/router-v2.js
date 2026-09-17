@@ -53,6 +53,7 @@ import {
   get_banks,
   get_wallet,
   transactions,
+  validate_bank_account,
   withdraw,
 } from "../handlers/v2/wallets.js";
 import { contact, newsletter, partnership_form } from "../handlers/v2/web.js";
@@ -302,6 +303,16 @@ const router = {
 
   add_bank_account: {
     handler: add_bank_account,
+    security: "auth_token",
+    schema: {
+      body: {
+        account_number: { type: "string", required: true },
+        bank_code: { type: "string", required: true },
+      },
+    },
+  },
+  validate_bank_account: {
+    handler: validate_bank_account,
     security: "auth_token",
     schema: {
       body: {
