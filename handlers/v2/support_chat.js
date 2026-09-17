@@ -23,11 +23,10 @@ const create_chat_session = async (req) => {
     ended_at: null,
     last_message: null,
     last_message_at: null,
+    _id: crypto.randomUUID(),
   };
 
   let result = await ChatSessions.insertOne(session);
-
-  session._id = result.insertedId;
 
   return {
     ok: true,
