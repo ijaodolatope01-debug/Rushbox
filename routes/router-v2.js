@@ -418,7 +418,7 @@ const router = {
     schema: {
       query: {
         page: { type: "number", default_value: 1 },
-        limit: { type: "number", default_value: 50 },
+        limit: { type: "number", default_value: 20 },
       },
       body: {
         date: { type: "string" },

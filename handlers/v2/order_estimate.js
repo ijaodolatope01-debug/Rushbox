@@ -97,10 +97,66 @@ const is_covered = (payload) => {
   return pickup && destination;
 };
 
+const reverse_geocode = async (lat, lng) => {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${encodeURIComponent(
+    `${lat},${lng}`,
+  )}&key=${encodeURIComponent(apiKey || "")}`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return {};
+
+    const json = await res.json();
+    if (json.status !== "OK" || !json.results?.length) return {};
+
+    const result = json.results[0];
+    const components = result.address_components || [];
+    const get = (type) =>
+      components.find((component) => component.types.includes(type))?.long_name;
+
+    return {
+      address: result.formatted_address,
+      state: get("administrative_area_level_1"),
+      city: get("locality") || get("administrative_area_level_2"),
+      country: get("country"),
+      local_govt: get("administrative_area_level_2"),
+    };
+  } catch {
+    return {};
+  }
+};
+
+const expand_payload = async (payload) => {
+  const [pickup, destination] = await Promise.all([
+    reverse_geocode(payload.pickup_latitude, payload.pickup_longitude),
+    reverse_geocode(payload.dropoff_latitude, payload.dropoff_longitude),
+  ]);
+
+  return {
+    ...payload,
+    pickup_address: payload.pickup_address ?? pickup.address,
+    pickup_state: pickup.state,
+    pickup_city: pickup.city,
+    destination_address: payload.destination_address ?? destination.address,
+    destination_state: destination.state,
+    destination_city: destination.city,
+    destination_latitude: payload.dropoff_latitude,
+    destination_longitude: payload.dropoff_longitude,
+    destination_country: destination.country,
+    local_govt: destination.local_govt ?? pickup.local_govt,
+  };
+};
+
 const fetch_estimates = async (req) => {
   let { db, headers } = req;
   let { profile } = headers;
-  const payload = req.body;
+
+  debug("Before", req.body);
+
+  let payload = await expand_payload(req.body);
+
+  debug("After", payload);
   let filter = payload.filter;
   delete payload.filter;
 
