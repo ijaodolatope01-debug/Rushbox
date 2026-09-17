@@ -156,6 +156,7 @@ const create_delivery = async (req, opts) => {
         courier: courierName,
         payment_reference: req.body.payment_reference,
         user_id: req.body.user_id,
+        delivery_notes: req?.body?.details?.dropoff_note,
       };
       debug("[create_delivery] Parsed API request details", {
         courierName,
@@ -168,6 +169,7 @@ const create_delivery = async (req, opts) => {
         ...pending,
         ...pending?.details,
         user_id: pending.profile,
+        delivery_notes: pending?.details?.dropoff_note,
       };
 
       courierName = details.courier;
