@@ -1,5 +1,6 @@
 import {
   agent_signin,
+  confirm_agent_signin,
   confirm_phone_update,
   create_api_key,
   delete_key,
@@ -411,6 +412,16 @@ const router = {
       body: {
         email: { type: "string", required: true },
         password: { type: "string", required: true },
+      },
+    },
+  },
+  confirm_agent_signin: {
+    handler: confirm_agent_signin,
+    security: "api_key",
+    schema: {
+      body: {
+        continuation_token: { type: "string", required: true },
+        otp: { type: "string", required: true },
       },
     },
   },

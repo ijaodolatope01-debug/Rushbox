@@ -364,10 +364,26 @@ const agent_signin = async (req) => {
   return res;
 };
 
+const confirm_agent_signin = async (req) => {
+  let { headers, services, body } = req;
+  let { continuation_token, otp } = body;
+
+  let Profile = await services("profiles");
+
+  let res = await Profile.call("two_factor_signin", {
+    profile_type: process.env.ADMIN_PROFILE_TYPE,
+    continuation_token,
+    otp,
+  });
+
+  return res;
+};
+
 export {
   email_signin,
   agent_signin,
   signin,
+  confirm_agent_signin,
   update_email,
   update_phone,
   request_otp,
