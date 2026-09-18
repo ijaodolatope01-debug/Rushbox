@@ -97,6 +97,31 @@ const is_covered = (payload) => {
   return pickup && destination;
 };
 
+const normalize_payload = (body = {}) => {
+  const pickup = body.pickup || {};
+  const dropoff = body.dropoff || {};
+
+  return {
+    ...body,
+
+    pickup_address: body.pickup_address ?? pickup.address,
+
+    pickup_latitude: body.pickup_latitude ?? pickup.latitude,
+
+    pickup_longitude: body.pickup_longitude ?? pickup.longitude,
+
+    dropoff_address: body.dropoff_address ?? dropoff.address,
+
+    dropoff_latitude: body.dropoff_latitude ?? dropoff.latitude,
+
+    dropoff_longitude: body.dropoff_longitude ?? dropoff.longitude,
+
+    package_weight: Number(body.package_weight) || 0,
+
+    value_of_item: Number(body.value_of_item) || 0,
+  };
+};
+
 const reverse_geocode = async (lat, lng) => {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${encodeURIComponent(
@@ -154,7 +179,9 @@ const fetch_estimates = async (req) => {
 
   debug("Before", req.body);
 
-  let payload = await expand_payload(req.body);
+  const normalized_request = normalize_payload(req.body);
+
+  let payload = await expand_payload(normalized_request);
 
   debug("After", payload);
   let filter = payload.filter;

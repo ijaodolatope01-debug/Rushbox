@@ -32,6 +32,8 @@ gp.callback({
     if (route === "courier_webhook/:courier" && result?.data) {
       const { order: payload } = result.data;
 
+      console.log(JSON.stringify(payload, null, 2));
+      console.log(payload, "OKK");
       if (!payload) return;
 
       const profile_id = payload.user_id;
@@ -110,6 +112,22 @@ gp.callback({
               template = "order-failed";
             }
 
+            let params = {
+              profile,
+              platform,
+              banner: "https://rushbox.biz/banner.jpeg",
+              order: {
+                status: payload?.order_status,
+                _id: payload?.order_id,
+                status_message: payload?.order_message,
+                courier: payload?.courier,
+                pickup_address: payload?.pickup?.address,
+                dropoff_address: payload?.destination?.address,
+                destination_address: payload?.destination?.address,
+              },
+            };
+
+            debug(JSON.stringify(params, null, 2), "HII");
             debug(
               await (
                 await req.services("aimail")
@@ -118,20 +136,7 @@ gp.callback({
                 from: platform.name,
                 content: {
                   template,
-                  params: {
-                    profile,
-                    platform,
-                    banner: "https://rushbox.biz/banner.jpeg",
-                    order: {
-                      status: payload?.order_status,
-                      _id: payload?.order_id,
-                      status_message: payload?.order_message,
-                      courier: payload?.courier,
-                      pickup_address: payload?.pickup?.address,
-                      dropoff_address: payload?.destination?.address,
-                      destination_address: payload?.destination?.address,
-                    },
-                  },
+                  params,
                 },
               }),
               "AI_MAIL",
@@ -229,6 +234,24 @@ gp.callback({
 
           const template = result.ok ? "order-created" : "order-failed";
 
+          let params = {
+            profile,
+            platform,
+            banner: "https://rushbox.biz/banner.jpeg",
+            order: {
+              status: data?.order_status,
+              _id: data?.order_id,
+              status_message: data?.order_message,
+              courier: data?.courier,
+              pickup_address: data?.pickup.address,
+              dropoff_address: data?.destination.address,
+              destination_address: data?.destination.address,
+            },
+
+            error: result.message,
+          };
+
+          debug(JSON.stringify(params, null, 2), "OKK");
           debug(
             await (
               await req.services("aimail")
@@ -237,22 +260,7 @@ gp.callback({
               from: platform.name,
               content: {
                 template,
-                params: {
-                  profile,
-                  platform,
-                  banner: "https://rushbox.biz/banner.jpeg",
-                  order: {
-                    status: data?.order_status,
-                    _id: data?.order_id,
-                    status_message: data?.order_message,
-                    courier: data?.courier,
-                    pickup_address: data?.pickup.address,
-                    dropoff_address: data?.destination.address,
-                    destination_address: data?.destination.address,
-                  },
-
-                  error: result.message,
-                },
+                params,
               },
             }),
           );
