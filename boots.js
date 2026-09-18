@@ -1,20 +1,10 @@
 import { Mongo } from "@godprotocol/repositories";
 
 const boots = async () => {
-  let db = new Mongo({
-    db_url: process.env.MONGODB_URI,
-    db_name: "rushbox",
-  });
-
-  console.log(
-    JSON.stringify(
-      await (await db.collection("Orders"))
-        .find({ courier_key: "8741" })
-        .toArray(),
-      null,
-      2,
-    ),
-  );
+  // const repo = new Mongo({
+  //   db_url: process.env.MONGODB_URI,
+  //   db_name: "rushbox",
+  // });
 };
 
 export { boots };

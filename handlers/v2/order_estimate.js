@@ -138,7 +138,7 @@ const expand_payload = async (payload) => {
     pickup_address: payload.pickup_address ?? pickup.address,
     pickup_state: pickup.state,
     pickup_city: pickup.city,
-    destination_address: payload.destination_address ?? destination.address,
+    destination_address: payload.dropoff_address ?? destination.address,
     destination_state: destination.state,
     destination_city: destination.city,
     destination_latitude: payload.dropoff_latitude,
