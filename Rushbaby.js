@@ -21,6 +21,36 @@ let gp = new GodProtocol({
 
 router(gp, { services_config });
 
+const normalize_email_order = (order = {}) => ({
+  _id: order?._id || order?.order_id,
+
+  status: order?.status || order?.order_status,
+
+  status_message:
+    order?.status_message ||
+    order?.order_message ||
+    STATUSES_MESSAGE?.[order?.ongoing_status],
+
+  courier: order?.courier,
+
+  pickup_address:
+    order?.pickup_address ||
+    order?.pickup?.address ||
+    order?.norm?.pickup?.address,
+
+  dropoff_address:
+    order?.dropoff_address ||
+    order?.destination_address ||
+    order?.destination?.address ||
+    order?.norm?.destination?.address,
+
+  destination_address:
+    order?.destination_address ||
+    order?.dropoff_address ||
+    order?.destination?.address ||
+    order?.norm?.destination?.address,
+});
+
 gp.callback({
   after: async ({ route, db, result, req }) => {
     const Webhooks = await db.folder("Webhooks");
@@ -34,6 +64,7 @@ gp.callback({
 
       console.log(JSON.stringify(payload, null, 2));
       console.log(payload, "OKK");
+
       if (!payload) return;
 
       const profile_id = payload.user_id;
@@ -47,16 +78,18 @@ gp.callback({
 
         let text =
           payload.status_message ||
-          STATUSES_MESSAGE[payload.ongoing_status] ||
+          STATUSES_MESSAGE?.[payload.ongoing_status] ||
           "Your order status has been updated";
 
         if (payload.ongoing_status === 10) {
           title = "Delivery Completed";
+
           text =
             payload.status_message ||
             "Your package has been delivered successfully.";
         } else if (payload.ongoing_status < 0) {
           title = "Delivery Failed";
+
           text =
             payload.status_message ||
             "Unfortunately, your delivery could not be completed.";
@@ -86,7 +119,7 @@ gp.callback({
       // ------------------------------------------------------------
 
       try {
-        let profile_result = await (
+        const profile_result = await (
           await req.services("profiles")
         ).call("get_profile", {
           _id: profile_id,
@@ -112,35 +145,34 @@ gp.callback({
               template = "order-failed";
             }
 
-            let params = {
+            const params = {
               profile,
               platform,
+
               banner: "https://rushbox.biz/banner.jpeg",
-              order: {
-                status: payload?.order_status,
-                _id: payload?.order_id,
-                status_message: payload?.order_message,
-                courier: payload?.courier,
-                pickup_address: payload?.pickup?.address,
-                dropoff_address: payload?.destination?.address,
-                destination_address: payload?.destination?.address,
-              },
+
+              order: normalize_email_order(payload),
             };
 
-            debug(JSON.stringify(params, null, 2), "HII");
             debug(
-              await (
-                await req.services("aimail")
-              ).call("send_mail", {
-                to: profile.email,
-                from: platform.name,
-                content: {
-                  template,
-                  params,
-                },
-              }),
-              "AI_MAIL",
+              JSON.stringify(params, null, 2),
+              "[EMAIL] COURIER STATUS PARAMS",
             );
+
+            const response = await (
+              await req.services("aimail")
+            ).call("send_mail", {
+              to: profile.email,
+
+              from: platform.name,
+
+              content: {
+                template,
+                params,
+              },
+            });
+
+            debug(response, "AI_MAIL");
           }
         }
       } catch (error) {
@@ -166,11 +198,13 @@ gp.callback({
 
           fetch(webhook.url, {
             method: "POST",
+
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
               "x-secret": hash(`${webhook.secret}:${body}`),
             },
+
             body,
           })
             .then((res) => res.json())
@@ -187,11 +221,13 @@ gp.callback({
     // ============================================================
     else if (route === "create_delivery") {
       const { data } = result;
+
       const { headers } = req;
 
       debug(JSON.stringify(data, null, 2));
 
       const profile = headers?.profile;
+
       const profile_id = profile?._id;
 
       // ------------------------------------------------------------
@@ -201,6 +237,7 @@ gp.callback({
       try {
         await send_notification(
           profile_id,
+
           {
             title: result.ok ? "Delivery Created" : "Delivery Creation Failed",
 
@@ -216,6 +253,7 @@ gp.callback({
               ...(data || {}),
             },
           },
+
           req,
         );
       } catch (error) {
@@ -234,36 +272,37 @@ gp.callback({
 
           const template = result.ok ? "order-created" : "order-failed";
 
-          let params = {
+          const params = {
             profile,
+
             platform,
+
             banner: "https://rushbox.biz/banner.jpeg",
-            order: {
-              status: data?.order_status,
-              _id: data?.order_id,
-              status_message: data?.order_message,
-              courier: data?.courier,
-              pickup_address: data?.pickup.address,
-              dropoff_address: data?.destination.address,
-              destination_address: data?.destination.address,
-            },
+
+            order: normalize_email_order(data),
 
             error: result.message,
           };
 
-          debug(JSON.stringify(params, null, 2), "OKK");
           debug(
-            await (
-              await req.services("aimail")
-            ).call("send_mail", {
-              to: profile.email,
-              from: platform.name,
-              content: {
-                template,
-                params,
-              },
-            }),
+            JSON.stringify(params, null, 2),
+            "[EMAIL] CREATE DELIVERY PARAMS",
           );
+
+          const response = await (
+            await req.services("aimail")
+          ).call("send_mail", {
+            to: profile.email,
+
+            from: platform.name,
+
+            content: {
+              template,
+              params,
+            },
+          });
+
+          debug(response, "AI_MAIL");
         }
       } catch (error) {
         debug("[EMAIL] Delivery creation email failed:", error);
@@ -291,11 +330,15 @@ gp.callback({
 
           await fetch(webhook.url, {
             method: "POST",
+
             headers: {
               Accept: "application/json",
+
               "Content-Type": "application/json",
+
               "x-secret": hash(`${webhook.secret}:${body}`),
             },
+
             body,
           })
             .then((res) => res.json())
