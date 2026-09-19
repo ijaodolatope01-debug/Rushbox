@@ -273,22 +273,22 @@ const update_email = async (req) => {
       },
     );
 
-    if (res.ok && res.data?.marked_for_deletion) {
-      await Profile.call("remove_from_deletion", {
-        profile_id: res.data._id,
-        profile_type: process.env.USER_PROFILE_TYPE,
-      });
+    if (res.ok) {
+      if (!profile.email) {
+        await handle_bank_account(res.data, db);
+      }
+      res.data?.marked_for_deletion &&
+        (await Profile.call("remove_from_deletion", {
+          profile_id: res.data._id,
+          profile_type: process.env.USER_PROFILE_TYPE,
+        }));
     }
 
     return res;
   };
   let res = await call_update();
 
-  if (res.ok) {
-    if (!profile.email) {
-      await handle_bank_account(res.data, db);
-    }
-  } else {
+  if (!res.ok) {
     if (res.status_code === "identity_already_in_use") {
       let profil = await Profile.call("get_profiles", {
         ids: [res.data.profile_id],
