@@ -40,6 +40,7 @@ import {
 import {
   confirm_delete_account,
   delete_account,
+  update_profile,
   user,
 } from "../handlers/v2/user.js";
 import {
@@ -69,6 +70,15 @@ const router = {
     security: "auth_token",
     schema: {
       body: {},
+    },
+  },
+  update_profile: {
+    handler: update_profile,
+    security: "auth_token",
+    schema: {
+      body: {
+        updates: { type: "object", required: true },
+      },
     },
   },
   delete_account: {
