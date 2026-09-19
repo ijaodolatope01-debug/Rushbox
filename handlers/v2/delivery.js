@@ -309,7 +309,7 @@ const create_delivery = async (req, opts) => {
           rushbox_id,
         },
         {
-          status: "failed",
+          state: "failed",
           message:
             reply.message ||
             "Delivery creation failed — Your wallet has been refunded",
