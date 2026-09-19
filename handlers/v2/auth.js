@@ -233,7 +233,7 @@ const update_phone = async (req) => {
 
       ans = ans.ok && ans.data[0];
 
-      if (ans && !ans.email && !ans.marked_for_deletion) {
+      if (ans && !ans.email) {
         let d = await Profile.call("mark_for_deletion", {
           profile_id: ans._id,
           profile_type: process.env.USER_PROFILE_TYPE,
@@ -291,8 +291,9 @@ const update_email = async (req) => {
   } else {
     if (res.status_code === "identity_already_in_use") {
       let profil = await Profile.call("get_profiles", {
-        _ids: [res.data.profile_id],
+        ids: [res.data.profile_id],
         profile_type: process.env.USER_PROFILE_TYPE,
+        filter: {},
       });
 
       if (profil.ok) {
@@ -302,6 +303,7 @@ const update_email = async (req) => {
           let d = await Profile.call("mark_for_deletion", {
             profile_id: profil._id,
             profile_type: process.env.USER_PROFILE_TYPE,
+            category: "merge",
           });
 
           if (d.ok) res = await call_update();
