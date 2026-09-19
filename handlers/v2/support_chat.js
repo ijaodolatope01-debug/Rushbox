@@ -112,7 +112,7 @@ const get_chat_session = async (req) => {
 
   return {
     ok: !!session,
-    message: session ? "Chat session retrieved" : "Session not found",
+    message: session ? "Chat session retrieved" : "Chat session not found",
     data: session,
   };
 };
@@ -131,13 +131,13 @@ const get_chat_messages = async (req) => {
 
   let session = await ChatSessions.findOne({
     _id: session_id,
-    user_id,
+    $or: [{ user_id }, { assigned_agent_id: user_id }],
   });
 
   if (!session) {
     return {
       ok: false,
-      message: "Session not found",
+      message: "Chat session not found",
       data: [],
     };
   }
@@ -184,13 +184,13 @@ const send_chat_message = async (req) => {
 
   let session = await ChatSessions.findOne({
     _id: session_id,
-    user_id,
+    $or: [{ user_id }, { assigned_agent_id: user_id }],
   });
 
   if (!session) {
     return {
       ok: false,
-      message: "Session not found",
+      message: "Chat session not found",
       data: null,
     };
   }
@@ -213,11 +213,10 @@ const send_chat_message = async (req) => {
     sender_id: user_id,
     message,
     created_at,
+    _id: crypto.randomUUID(),
   };
 
-  let result = await ChatMessages.insertOne(chat_message);
-
-  chat_message._id = result.insertedId;
+  await ChatMessages.insertOne(chat_message);
 
   await ChatSessions.updateOne(
     {
@@ -225,8 +224,7 @@ const send_chat_message = async (req) => {
     },
     {
       $set: {
-        last_message: message,
-        last_message_at: created_at,
+        last_message: chat_message._id,
       },
     },
   );
@@ -269,7 +267,7 @@ const end_chat_session = async (req) => {
   if (!session) {
     return {
       ok: false,
-      message: "Session not found",
+      message: "Chat session not found",
       data: null,
     };
   }
@@ -285,7 +283,7 @@ const end_chat_session = async (req) => {
   if (session.status === "closed") {
     return {
       ok: true,
-      message: "Session already closed",
+      message: "Chat session already closed",
       data: session,
     };
   }
@@ -319,7 +317,7 @@ const end_chat_session = async (req) => {
 
   return {
     ok: true,
-    message: "Session ended",
+    message: "Chat session ended",
     data: session,
   };
 };
@@ -460,7 +458,7 @@ const assign_support_chat = async (req) => {
 
   let res = await Profile.call("get_profiles", {
     profile_type: process.env.ADMIN_PROFILE_TYPE,
-    _ids: [agent_id],
+    ids: [agent_id],
   });
 
   let agent = res?.ok && res.data?.[0];
