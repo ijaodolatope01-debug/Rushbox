@@ -18,7 +18,12 @@ const history = async (req) => {
 
   let Orders = await db.folder("Orders");
 
-  orders = await Orders.find({ user_id, status })
+  let query = { user_id };
+  if (status !== "all" && status) {
+    query.status = status;
+  }
+
+  orders = await Orders.find(query)
     .sort({ created: -1 })
     .skip(skip)
     .limit(limit)

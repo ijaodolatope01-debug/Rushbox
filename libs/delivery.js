@@ -36,7 +36,7 @@ const store_delivery = async (response, body, status, db) => {
 };
 
 const delivery_failed = async (message, details, db) => {
-  await store_delivery(null, details, { status: "failed", message }, db);
+  await store_delivery(null, details, { state: "failed", message }, db);
 };
 
 const validateEstimate = async (estimate_id, courier, db) => {

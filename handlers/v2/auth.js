@@ -286,6 +286,7 @@ const update_email = async (req) => {
 
     return res;
   };
+
   let res = await call_update();
 
   if (!res.ok) {
