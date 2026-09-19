@@ -41,6 +41,7 @@ const request_otp = async (req) => {
         },
       });
 
+  debug(response, "how");
   if (!response.ok) {
     if (
       response.message === "Invalid credentials" ||

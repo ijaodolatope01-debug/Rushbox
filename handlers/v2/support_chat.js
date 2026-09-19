@@ -209,7 +209,7 @@ const send_chat_message = async (req) => {
 
   let chat_message = {
     session_id,
-    sender_type: "user",
+    sender_type: session?.user_id === user_id ? "user" : "agent",
     sender_id: user_id,
     message,
     created_at,
