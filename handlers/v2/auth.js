@@ -161,7 +161,10 @@ const email_signin = async (req) => {
 
   let res = await Profile.call("signup", {
     social,
-    details,
+    details: {
+      ...details,
+      referral_code: generate_random_string(5, "alnum").toUpperCase(),
+    },
     profile_type: process.env.USER_PROFILE_TYPE,
     password: process.env.RUSHBOX_DEFAULT_PASSWORD,
   });
@@ -175,48 +178,77 @@ const update_phone = async (req) => {
 
   let Profile = await services("profiles");
 
-  let res = await Profile.call(
-    "update_profile_identity",
-    {
-      identity: {
-        phone,
-      },
-    },
-    {
-      token: headers.authorization,
-    },
-  );
-
-  if (res.ok) {
-    let Rus_continuation_token = await db.folder(
-      "Rus:continuation_tokens:update_identity",
-    );
-
-    await Rus_continuation_token.updateOne(
+  let call_update = async () => {
+    let res = await Profile.call(
+      "update_profile_identity",
       {
-        phone,
-        type: "update_identity",
-      },
-      {
-        $set: {
-          data: res.data,
-          updated: Date.now(),
-          expiresAt: new Date(Date.now() + CONTINUATION_TOKEN_TTL),
-        },
-        $setOnInsert: {
-          _id: crypto.randomUUID(),
-          created: Date.now(),
+        identity: {
+          phone,
         },
       },
       {
-        upsert: true,
+        token: headers.authorization,
       },
     );
+
+    if (res.ok) {
+      let Rus_continuation_token = await db.folder(
+        "Rus:continuation_tokens:update_identity",
+      );
+
+      await Rus_continuation_token.updateOne(
+        {
+          phone,
+          type: "update_identity",
+        },
+        {
+          $set: {
+            data: res.data,
+            updated: Date.now(),
+            expiresAt: new Date(Date.now() + CONTINUATION_TOKEN_TTL),
+          },
+          $setOnInsert: {
+            _id: crypto.randomUUID(),
+            created: Date.now(),
+          },
+        },
+        {
+          upsert: true,
+        },
+      );
+    }
+
+    return res;
+  };
+  let res = await call_update();
+
+  if (!res.ok) {
+    if (res.status_code === "identity_already_in_use") {
+      let ans = await Profile.call("get_profiles", {
+        profile_type: process.env.USER_PROFILE_TYPE,
+        filter: {
+          phone,
+        },
+      });
+
+      ans = ans.ok && ans.data[0];
+
+      if (ans && !ans.email && !ans.marked_for_deletion) {
+        let d = await Profile.call("mark_for_deletion", {
+          profile_id: ans._id,
+          profile_type: process.env.USER_PROFILE_TYPE,
+          category: "merge",
+        });
+
+        if (d.ok) res = await call_update();
+      }
+    }
   }
 
   return {
     ok: res.ok,
     message: res.message,
+    status_code: res.status_code,
     data: {
       phone,
     },
@@ -230,19 +262,51 @@ const update_email = async (req) => {
 
   let Profile = await services("profiles");
 
-  let res = await Profile.call(
-    "update_social_identity",
-    {
-      social,
-    },
-    {
-      token: authorization,
-    },
-  );
+  let call_update = async () => {
+    let res = await Profile.call(
+      "update_social_identity",
+      {
+        social,
+      },
+      {
+        token: authorization,
+      },
+    );
+
+    if (res.ok && res.data?.marked_for_deletion) {
+      await Profile.call("remove_from_deletion", {
+        profile_id: res.data._id,
+        profile_type: process.env.USER_PROFILE_TYPE,
+      });
+    }
+
+    return res;
+  };
+  let res = await call_update();
 
   if (res.ok) {
     if (!profile.email) {
       await handle_bank_account(res.data, db);
+    }
+  } else {
+    if (res.status_code === "identity_already_in_use") {
+      let profil = await Profile.call("get_profiles", {
+        _ids: [res.data.profile_id],
+        profile_type: process.env.USER_PROFILE_TYPE,
+      });
+
+      if (profil.ok) {
+        profil = profil.data[0];
+
+        if (profil && !profil.phone) {
+          let d = await Profile.call("mark_for_deletion", {
+            profile_id: profil._id,
+            profile_type: process.env.USER_PROFILE_TYPE,
+          });
+
+          if (d.ok) res = await call_update();
+        }
+      }
     }
   }
 
@@ -289,6 +353,13 @@ const confirm_phone_update = async (req) => {
 
     if (!profile?.phone) {
       await handle_bank_account(res.data, db);
+    }
+
+    if (res.data?.marked_for_deletion) {
+      await Profile.call("remove_from_deletion", {
+        profile_id: res.data._id,
+        profile_type: process.env.USER_PROFILE_TYPE,
+      });
     }
   }
 
