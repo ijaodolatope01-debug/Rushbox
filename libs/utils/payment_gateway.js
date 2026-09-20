@@ -6,10 +6,11 @@ const result = (data) => {
 
 const create_virtual_account = async (customer) => {
   let payload = {
-      customer,
-      preferred_bank: "wema-bank",
-    },
-    res;
+    customer,
+    preferred_bank: "titan-paystack",
+  };
+
+  let res;
 
   try {
     res = await fetch("https://api.paystack.co/dedicated_account", {
@@ -20,6 +21,7 @@ const create_virtual_account = async (customer) => {
       },
       body: JSON.stringify(payload),
     });
+
     res = await res.json();
   } catch (e) {
     console.log(e);

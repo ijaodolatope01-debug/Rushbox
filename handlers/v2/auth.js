@@ -173,7 +173,7 @@ const email_signin = async (req) => {
 };
 
 const update_phone = async (req) => {
-  let { headers, db, body, services } = req;
+  let { headers, db, body, services, gp } = req;
   let { phone } = body;
 
   let Profile = await services("profiles");
@@ -240,7 +240,10 @@ const update_phone = async (req) => {
           category: "merge",
         });
 
-        if (d.ok) res = await call_update();
+        if (d.ok) {
+          res = await call_update();
+          await gp.route_table.remove_auth_cache(ans._id);
+        }
       }
     }
   }
@@ -256,7 +259,7 @@ const update_phone = async (req) => {
 };
 
 const update_email = async (req) => {
-  let { body, db, headers, services } = req;
+  let { body, db, headers, services, gp } = req;
   let { authorization, profile } = headers;
   let { social } = body;
 
@@ -277,11 +280,14 @@ const update_email = async (req) => {
       if (!profile.email) {
         await handle_bank_account(res.data, db);
       }
-      res.data?.marked_for_deletion &&
-        (await Profile.call("remove_from_deletion", {
+      if (res.data?.marked_for_deletion) {
+        await Profile.call("remove_from_deletion", {
           profile_id: res.data._id,
           profile_type: process.env.USER_PROFILE_TYPE,
-        }));
+        });
+
+        await gp.route_table.remove_auth_cache(res.data._id);
+      }
     }
 
     return res;
@@ -307,7 +313,10 @@ const update_email = async (req) => {
             category: "merge",
           });
 
-          if (d.ok) res = await call_update();
+          if (d.ok) {
+            res = await call_update();
+            await gp.route_table.remove_auth_cache(profil._id);
+          }
         }
       }
     }
@@ -317,7 +326,7 @@ const update_email = async (req) => {
 };
 
 const confirm_phone_update = async (req) => {
-  let { headers, db, services, body } = req;
+  let { headers, db, services, body, gp } = req;
   let { phone, code } = body;
   let { profile } = headers;
 
@@ -363,6 +372,7 @@ const confirm_phone_update = async (req) => {
         profile_id: res.data._id,
         profile_type: process.env.USER_PROFILE_TYPE,
       });
+      await gp.route_table.remove_auth_cache(res.data._id);
     }
   }
 

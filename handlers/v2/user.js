@@ -9,7 +9,7 @@ const user = async (req) => {
 };
 
 const confirm_delete_account = async (req) => {
-  let { headers, db, services, body } = req;
+  let { headers, db, services, body, gp } = req;
   let { phone, code } = body;
   let { profile } = headers;
 
@@ -20,7 +20,6 @@ const confirm_delete_account = async (req) => {
     phone,
   });
 
-  console.log(tok);
   if (!tok) {
     return {
       ok: false,
@@ -45,12 +44,7 @@ const confirm_delete_account = async (req) => {
       _id: tok._id,
     });
 
-    await (
-      await db.folder("$CACHE-auth")
-    ).deleteOne({
-      profile_id: profile._id,
-      type: "third_party",
-    });
+    await gp.route_table.remove_auth_cache(profile._id);
 
     if (!profile?.phone) {
       // await handle_bank_account(res.data, db);
@@ -71,7 +65,6 @@ const delete_account = async (req) => {
     { token: headers.authorization },
   );
 
-  console.log(res, "howw");
   if (res.ok) {
     let Rus_continuation_token = await db.folder(
       "Rus:continuation_tokens:delete_profile",
@@ -97,23 +90,28 @@ const delete_account = async (req) => {
   return {
     ok: res.ok,
     message: res.message,
-    data: {},
   };
 };
 
 const update_profile = async (req) => {
-  let { headers, db, body, services } = req;
+  let { headers, body, services, gp } = req;
   let { updates } = body;
 
   let Profile = await services("profiles");
 
-  return await Profile.call(
+  let res = await Profile.call(
     "update_profile",
     {
       updates,
     },
     { token: headers.authorization },
   );
+
+  if (res.ok) {
+    await gp.route_table.remove_auth_cache(res.data._id);
+  }
+
+  return res;
 };
 
 export { user, delete_account, confirm_delete_account, update_profile };
