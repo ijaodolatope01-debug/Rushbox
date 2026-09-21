@@ -403,10 +403,9 @@ const get_chat_agents = async (req) => {
   let { limit, page } = query || {};
   let Profile = await services("profiles");
 
-  let res = await Profile.call("get_profiles", {
+  let res = await Profile.call(`get_profiles?limit=${limit}&page=${page}`, {
     profile_type: process.env.ADMIN_PROFILE_TYPE,
-    limit,
-    page,
+    filter: {},
   });
 
   return res;

@@ -96,6 +96,7 @@ const delete_account = async (req) => {
 const update_profile = async (req) => {
   let { headers, body, services, gp } = req;
   let { updates } = body;
+  let { debug } = gp.utils;
 
   let Profile = await services("profiles");
 
@@ -108,7 +109,7 @@ const update_profile = async (req) => {
   );
 
   if (res.ok) {
-    await gp.route_table.remove_auth_cache(res.data._id);
+    debug(await gp.route_table.remove_auth_cache(res.data._id), "howww");
   }
 
   return res;

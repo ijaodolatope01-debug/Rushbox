@@ -6,14 +6,7 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  // console.log(
-  //   await (
-  //     await repo.collection("Wallets")
-  //   ).updateOne(
-  //     { _id: "48158bf4-0a5c-4f07-9140-00ac96b17579" },
-  //     { $inc: { balance: 1000000 } },
-  //   ),
-  // );
+  console.log(await (await repo.collection("$CACHE-auth")).find().toArray());
 };
 
 export { boots };
