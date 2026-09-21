@@ -372,14 +372,14 @@ const confirm_phone_update = async (req) => {
 const refresh_api_key = async (req) => {
   let { headers, services, query } = req;
   let { authorization } = headers;
-  let { test } = query;
+  let { staging } = query;
 
   let res = await (
     await services("profiles")
   ).call(
     "refresh_profile_key",
     {
-      name: test ? `test:${profile._id}` : profile._id,
+      name: staging ? `test:${profile._id}` : profile._id,
     },
     {
       token: authorization,

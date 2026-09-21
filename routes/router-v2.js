@@ -145,7 +145,7 @@ const router = {
     security: "auth_token",
     schema: {
       query: {
-        test: { type: "boolean", default_value: false },
+        staging: { type: "boolean", default_value: false },
       },
     },
   },
