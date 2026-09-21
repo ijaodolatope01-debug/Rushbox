@@ -49,6 +49,7 @@ import {
 } from "../handlers/v2/user_webhook.js";
 import {
   add_bank_account,
+  confirm_withdraw,
   delete_bank_account,
   get_bank_accounts,
   get_banks,
@@ -337,6 +338,17 @@ const router = {
         amount: { type: "number", required: true },
         bank_account_id: { type: "string", required: true },
         reason: { type: "string", required: false },
+      },
+    },
+  },
+
+  confirm_withdraw: {
+    handler: confirm_withdraw,
+    security: "auth_token",
+    schema: {
+      body: {
+        continuation_token: { type: "string", required: true },
+        code: { type: "number", required: true },
       },
     },
   },
