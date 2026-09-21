@@ -2,9 +2,8 @@ import {
   agent_signin,
   confirm_agent_signin,
   confirm_phone_update,
-  create_api_key,
-  delete_key,
   email_signin,
+  refresh_api_key,
   request_otp,
   retrieve_keys,
   signin,
@@ -141,12 +140,12 @@ const router = {
     },
   },
 
-  create_api_key: {
-    handler: create_api_key,
+  refresh_api_key: {
+    handler: refresh_api_key,
     security: "auth_token",
     schema: {
-      body: {
-        name: { type: "string", required: true },
+      query: {
+        test: { type: "boolean", default_value: false },
       },
     },
   },
@@ -154,15 +153,12 @@ const router = {
     handler: retrieve_keys,
     security: "auth_token",
     schema: {
-      body: {},
-    },
-  },
-  delete_key: {
-    handler: delete_key,
-    security: "auth_token",
-    schema: {
-      body: {
-        name: { type: "string", required: true },
+      query: {
+        context: {
+          type: "string",
+          enum: ["all", "staging", "live"],
+          default_value: "all",
+        },
       },
     },
   },

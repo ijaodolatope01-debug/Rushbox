@@ -6,7 +6,7 @@ const boots = async () => {
     db_name: "rushbox",
   });
 
-  console.log(await (await repo.collection("$CACHE-auth")).find().toArray());
+  // console.log(await (await repo.collection("$CACHE-auth")).find().toArray());
 };
 
 export { boots };

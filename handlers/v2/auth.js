@@ -1,6 +1,4 @@
-import { handle_bank_account } from "../../libs/utils/payment_gateway.js";
 import { generate_random_string } from "../../libs/utils/user.js";
-import { hash } from "../v1/auth.js";
 import { debug } from "./delivery.js";
 
 const CONTINUATION_TOKEN_TTL = 5 * 60 * 1000; // 5 minutes
@@ -17,7 +15,6 @@ const request_otp = async (req) => {
     };
   }
 
-  // let reslt = await request_otp_(phone, user_id);
   let Profile = await services("profiles");
   let Rus_continuation_token = await db.folder("Rus:continuation_tokens");
 
@@ -259,8 +256,8 @@ const update_phone = async (req) => {
 };
 
 const update_email = async (req) => {
-  let { body, db, headers, services, gp } = req;
-  let { authorization, profile } = headers;
+  let { body, headers, services, gp } = req;
+  let { authorization } = headers;
   let { social } = body;
 
   let Profile = await services("profiles");
@@ -277,9 +274,6 @@ const update_email = async (req) => {
     );
 
     if (res.ok) {
-      if (!profile.email) {
-        await handle_bank_account(res.data, db);
-      }
       if (res.data?.marked_for_deletion) {
         await Profile.call("remove_from_deletion", {
           profile_id: res.data._id,
@@ -363,10 +357,6 @@ const confirm_phone_update = async (req) => {
       _id: tok._id,
     });
 
-    if (!profile?.phone) {
-      await handle_bank_account(res.data, db);
-    }
-
     if (res.data?.marked_for_deletion) {
       await Profile.call("remove_from_deletion", {
         profile_id: res.data._id,
@@ -379,17 +369,17 @@ const confirm_phone_update = async (req) => {
   return res;
 };
 
-const create_api_key = async (req) => {
-  let { headers, services, body } = req;
+const refresh_api_key = async (req) => {
+  let { headers, services, query } = req;
   let { authorization } = headers;
-  let { name } = body;
+  let { test } = query;
 
   let res = await (
     await services("profiles")
   ).call(
     "refresh_profile_key",
     {
-      name,
+      name: test ? `test:${profile._id}` : profile._id,
     },
     {
       token: authorization,
@@ -400,30 +390,17 @@ const create_api_key = async (req) => {
 };
 
 const retrieve_keys = async (req) => {
-  let { headers, services } = req;
+  let { headers, services, query } = req;
   let { authorization } = headers;
-
-  let res = await (
-    await services("profiles")
-  ).call("retrieve_profile_keys", null, {
-    token: authorization,
-  });
-
-  return res;
-};
-
-const delete_key = async (req) => {
-  let { headers, services, body } = req;
-  let { authorization } = headers;
-  let { name } = body;
+  let { context } = query;
 
   let res = await (
     await services("profiles")
   ).call(
-    "revoke_profile_key",
-    {
-      name,
-    },
+    "retrieve_profile_keys",
+    ["live", "staging"].includes(context)
+      ? { name: context === "live" ? profile._id : `test:${profile._id}` }
+      : null,
     {
       token: authorization,
     },
@@ -472,8 +449,7 @@ export {
   update_email,
   update_phone,
   request_otp,
-  create_api_key,
+  refresh_api_key,
   retrieve_keys,
-  delete_key,
   confirm_phone_update,
 };
