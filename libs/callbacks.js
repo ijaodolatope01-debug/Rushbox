@@ -326,12 +326,15 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
     } catch (error) {
       debug("[WEBHOOK] Delivery creation webhook failed:", error);
     }
-  } else if (result.ok && ["update_email", "update_phone"].includes(route)) {
+  } else if (
+    result.ok &&
+    ["update_email", "confirm_update_phone"].includes(route)
+  ) {
     let { profile } = headers;
 
     if (
       (!profile.email && route === "update_email") ||
-      (!profile.phone && route === "update_phone")
+      (!profile.phone && route === "confirm_update_phone")
     ) {
       await handle_bank_account(result.data, db);
     }

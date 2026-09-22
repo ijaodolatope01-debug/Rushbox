@@ -322,7 +322,6 @@ const update_email = async (req) => {
 const confirm_phone_update = async (req) => {
   let { headers, db, services, body, gp } = req;
   let { phone, code } = body;
-  let { profile } = headers;
 
   let Rus_continuation_token = await db.folder(
     "Rus:continuation_tokens:update_identity",
