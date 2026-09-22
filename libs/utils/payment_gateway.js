@@ -104,6 +104,8 @@ const handle_bank_account = async (user_data, db) => {
     customer = await create_customer(user_data);
   }
 
+  console.log(customer);
+
   let response = await create_virtual_account(customer?.customer_code);
   let virtual_account = {
     number: response.account_number,

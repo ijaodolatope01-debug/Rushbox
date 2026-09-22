@@ -333,7 +333,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
       (!profile.email && route === "update_email") ||
       (!profile.phone && route === "update_phone")
     ) {
-      await handle_bank_account(result.data);
+      await handle_bank_account(result.data, db);
     }
 
     await create_profile_keys(result.data, req);
