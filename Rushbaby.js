@@ -5,7 +5,11 @@ import GodProtocol from "godprotocol";
 
 import router from "./routes/index.js";
 import services_config, { gp_services_config } from "./services.config.js";
-import { after_callback, header_callback } from "./libs/callbacks.js";
+import {
+  after_callback,
+  header_callback,
+  on_error_callback,
+} from "./libs/callbacks.js";
 
 let gp = new GodProtocol({
   platform_uri: process.env.PLATFORM_URI,
@@ -23,6 +27,7 @@ router(gp, { services_config });
 gp.callback({
   after: after_callback,
   header_resolved: header_callback,
+  error: on_error_callback,
 });
 
 gp.on_start(() => {

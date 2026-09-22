@@ -343,7 +343,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
 const header_callback = async ({ headers }) => {
   let auth = headers.authorization;
 
-  if (auth.startsWith("rb_")) {
+  if (auth?.startsWith("rb_")) {
     if (auth.startsWith("rb_test_") && !process.env.STAGING) {
       return {
         ok: false,
@@ -369,4 +369,45 @@ const header_callback = async ({ headers }) => {
   }
 };
 
-export { after_callback, header_callback };
+const on_error_callback = async (payload, gp) => {
+  let team = process.env.DEV_TEAM;
+
+  try {
+    if (!team) {
+      return;
+    }
+    team = JSON.parse(team);
+  } catch (e) {
+    return;
+  }
+
+  let mail_payload = {
+    request_id: payload.request_id,
+    stage: payload.stage,
+    timestamp: payload.timestamp,
+    error_json: JSON.stringify(payload.error ?? {}, null, 2),
+    request_json: JSON.stringify(payload.request ?? {}, null, 2),
+    routing_json: JSON.stringify(payload.routing ?? {}, null, 2),
+    database_json: JSON.stringify(payload.database ?? {}, null, 2),
+    security_json: JSON.stringify(payload.security ?? {}, null, 2),
+    before_hook_json: JSON.stringify(payload.before_hook ?? {}, null, 2),
+    execution_json: JSON.stringify(payload.execution ?? {}, null, 2),
+    result_json: JSON.stringify(payload.result ?? null, null, 2),
+  };
+
+  for (let t = 0; t < team.length; t++) {
+    (await gp.route_table.get_service("aimail"))
+      .call("send_mail", {
+        to: team[t],
+        from: "Rushbox Monitoring",
+        content: {
+          template: "internal_error_alert",
+          params: mail_payload,
+        },
+      })
+      .then((res) => {})
+      .catch((err) => console.log(err));
+  }
+};
+
+export { after_callback, header_callback, on_error_callback };

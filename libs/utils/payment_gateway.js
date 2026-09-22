@@ -96,9 +96,10 @@ const update_customer = async (customer, update) => {
 };
 
 const handle_bank_account = async (user_data, db) => {
+  console.log(user_data);
   let _id = user_data._id;
   let customer = user_data?.email && (await fetch_customer(user_data.email));
-  // console.log(customer, "custom");
+  console.log(customer, "custom");
   if (!customer) {
     customer = await create_customer(user_data);
   }
