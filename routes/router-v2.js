@@ -221,10 +221,12 @@ const router = {
     handler: history,
     security: "auth_token",
     schema: {
-      body: {
-        status: { type: "string" },
+      query: {
         limit: { type: "number", default_value: 20 },
         page: { type: "number", default_value: 1 },
+      },
+      body: {
+        status: { type: "string" },
       },
     },
   },
@@ -276,10 +278,12 @@ const router = {
     handler: get_reviews,
     security: "auth_token",
     schema: {
-      body: {
-        courier: { type: "string", required: true },
+      query: {
         page: { type: "number", default_value: 1 },
         limit: { type: "number", default_value: 20 },
+      },
+      body: {
+        courier: { type: "string", required: true },
       },
     },
   },
@@ -297,7 +301,7 @@ const router = {
     handler: transactions,
     security: "auth_token",
     schema: {
-      body: {
+      query: {
         page: { type: "number", default_value: 1 },
         limit: { type: "number", default_value: 20 },
       },
@@ -348,7 +352,7 @@ const router = {
     schema: {
       body: {
         continuation_token: { type: "string", required: true },
-        code: { type: "number", required: true },
+        code: { type: "string", required: true },
       },
     },
   },
