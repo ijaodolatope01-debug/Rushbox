@@ -7,14 +7,14 @@ const create_profile_keys = async (profile, req) => {
     "create_profile_key",
     {
       name: profile._id,
-      prefix: "rb_live",
+      prefix: "rb_live_",
     },
     { token: headers.authorization },
   );
 
   await Profile.call(
     "create_profile_key",
-    { name: `test:${profile._id}`, prefix: "rb_test" },
+    { name: `test:${profile._id}`, prefix: "rb_test_" },
     { token: headers.authorization },
   );
 };
