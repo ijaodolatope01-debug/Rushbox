@@ -329,7 +329,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
     }
   } else if (
     result.ok &&
-    ["update_email", "confirm_update_phone"].includes(route)
+    ["update_email", "confirm_phone_update"].includes(route)
   ) {
     let { profile } = headers;
 
@@ -337,7 +337,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
     console.log(result);
     if (
       (!profile.email && route === "update_email") ||
-      (!profile.phone && route === "confirm_update_phone")
+      (!profile.phone && route === "confirm_phone_update")
     ) {
       await handle_bank_account(result.data, db);
 
