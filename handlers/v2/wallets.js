@@ -508,7 +508,11 @@ const confirm_withdraw = async (req) => {
       },
     );
 
-    throw err;
+    return {
+      status: 403,
+      message: err.message,
+      ok: false,
+    };
   }
 };
 
