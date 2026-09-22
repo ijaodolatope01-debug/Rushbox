@@ -332,14 +332,16 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
   ) {
     let { profile } = headers;
 
+    console.log(route, profile);
+    console.log(result);
     if (
       (!profile.email && route === "update_email") ||
       (!profile.phone && route === "confirm_update_phone")
     ) {
       await handle_bank_account(result.data, db);
-    }
 
-    await create_profile_keys(result.data, req);
+      await create_profile_keys(result.data, req);
+    }
   }
 };
 
