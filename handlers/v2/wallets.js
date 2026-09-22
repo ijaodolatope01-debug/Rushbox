@@ -3,6 +3,7 @@ import {
   resolve_bank_account,
   transfer_to_bank,
 } from "../../libs/utils/payment_gateway.js";
+import crypto from "crypto";
 
 const get_wallet = async (req) => {
   let { headers, db } = req;
