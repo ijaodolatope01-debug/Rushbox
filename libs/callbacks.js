@@ -38,6 +38,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
 
   const Webhooks = await db.folder("Webhooks");
 
+  console.log(route, result, "after");
   // ============================================================
   // COURIER WEBHOOK
   // ============================================================
