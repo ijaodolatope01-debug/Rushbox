@@ -96,15 +96,12 @@ const update_customer = async (customer, update) => {
 };
 
 const handle_bank_account = async (user_data, db) => {
-  console.log(user_data);
   let _id = user_data._id;
   let customer = user_data?.email && (await fetch_customer(user_data.email));
-  console.log(customer, "custom");
+
   if (!customer) {
     customer = await create_customer(user_data);
   }
-
-  console.log(customer);
 
   let response = await create_virtual_account(customer?.customer_code);
   let virtual_account = {
@@ -115,9 +112,12 @@ const handle_bank_account = async (user_data, db) => {
     user: _id,
     _id: hash(customer.customer_code),
   };
-  try {
-    await (await db.folder("Virtual_accounts")).insertOne(virtual_account);
-  } catch (e) {}
+
+  // Upsert + re-stamp `user` instead of insertOne+swallow — this is what
+  // rebinds a resurrected customer_code to whoever currently owns it.
+  await (
+    await db.folder("Virtual_accounts")
+  ).replaceOne({ _id: virtual_account._id }, virtual_account, { upsert: true });
 
   let data = {
     _id,

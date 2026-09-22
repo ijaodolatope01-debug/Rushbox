@@ -37,7 +37,7 @@ const transactions = async (req) => {
 
   let txs = await db.folder("Transactions");
 
-  let skip = (page - 1) / limit;
+  let skip = (page - 1) * limit;
 
   let data = await txs
     .find({ wallet })
