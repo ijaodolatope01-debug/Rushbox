@@ -1,6 +1,7 @@
 const user = async (req) => {
   let { profile } = req.headers;
 
+  throw new Error("HEy ");
   return {
     ok: true,
     data: profile,

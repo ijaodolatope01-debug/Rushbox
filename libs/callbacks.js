@@ -371,6 +371,7 @@ const header_callback = async ({ headers }) => {
 
 const on_error_callback = async (payload, gp) => {
   let team = process.env.DEV_TEAM;
+  let { debug } = gp.utils;
 
   try {
     if (!team) {
@@ -396,7 +397,7 @@ const on_error_callback = async (payload, gp) => {
   };
 
   for (let t = 0; t < team.length; t++) {
-    (await gp.route_table.get_service("aimail"))
+    (await gp.route_table.get_service("aimail", { version: "v2" }))
       .call("send_mail", {
         to: team[t],
         from: "Rushbox Monitoring",
@@ -405,7 +406,9 @@ const on_error_callback = async (payload, gp) => {
           params: mail_payload,
         },
       })
-      .then((res) => {})
+      .then((res) => {
+        debug(res, "ok");
+      })
       .catch((err) => console.log(err));
   }
 };
