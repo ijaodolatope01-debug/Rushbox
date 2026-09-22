@@ -371,7 +371,7 @@ const confirm_phone_update = async (req) => {
 
 const refresh_api_key = async (req) => {
   let { headers, services, query } = req;
-  let { authorization } = headers;
+  let { authorization, profile } = headers;
   let { staging } = query;
 
   let res = await (
