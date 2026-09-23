@@ -369,7 +369,7 @@ const confirm_phone_update = async (req) => {
 };
 
 const refresh_api_key = async (req) => {
-  let { headers, services, query } = req;
+  let { headers, services, query, gp } = req;
   let { authorization, profile } = headers;
   let { staging } = query;
 
@@ -384,6 +384,8 @@ const refresh_api_key = async (req) => {
       token: authorization,
     },
   );
+
+  if (res.ok) await gp.route_table.remove_auth_cache(profile._id);
 
   return res;
 };

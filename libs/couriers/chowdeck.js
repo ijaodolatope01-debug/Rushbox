@@ -101,6 +101,12 @@ async function create_chowdeck(details) {
 }
 
 const webhook_chowdeck = async (req, { staging }) => {
+  console.log(
+    await (
+      await req.db.folder("Webhook_payload")
+    ).insertOne({ _id: crypto.randomUUID(), body: req.body }),
+  );
+
   const hash = crypto
     .createHmac(
       "sha512",
@@ -109,15 +115,20 @@ const webhook_chowdeck = async (req, { staging }) => {
     .update(JSON.stringify(req.body))
     .digest("hex");
 
+  console.log(hash, staging);
+
   // if (hash != req.headers["x-chowdeck-signature"]) {
   //   return false;
   // }
+  console.log(req);
 
   // Retrieve the request's body
   const event = req.body;
   let { status, data } = event;
 
   let id = data?.tracking?.[0]?.trackingId;
+
+  console.log(id);
 
   return await update_ongoing_status(id, status.split(".")[1], "chowdeck", {
     db: req.db,

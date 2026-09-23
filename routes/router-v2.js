@@ -391,7 +391,7 @@ const router = {
     schema: {
       body: {},
       query: {
-        staging: { default_value: true },
+        staging: { type: "boolean", default_value: true },
       },
     },
   },
