@@ -25,7 +25,7 @@ const estimate_errandlr = async ({
     };
     debug(bdy);
     const response = await fetch(
-      process.env.STAGING && false
+      process.env.STAGING
         ? "https://green.errandlr.com/v2/estimate"
         : "https://commerce.errandlr.com/v2/estimate",
       {
@@ -108,7 +108,7 @@ async function create_errandlr(details) {
   debug(JSON.stringify(body, null, 2), "errand delivery body");
   try {
     const response = await fetch(
-      process.env.STAGING && false
+      process.env.STAGING
         ? "https://green.errandlr.com/request"
         : "https://commerce.errandlr.com/request",
       {

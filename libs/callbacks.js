@@ -346,24 +346,27 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
   }
 };
 
-const header_callback = async ({ headers }) => {
+const header_callback = async ({ headers }, gp) => {
   let auth = headers.authorization;
+  let { debug } = gp.utils;
 
   if (auth?.startsWith("rb_")) {
-    if (auth.startsWith("rb_test_") && !process.env.STAGING) {
-      return {
-        ok: false,
-        status: 401,
-        status_code: "test_key_not_allowed",
-        message: "Test API keys are not allowed in production",
-      };
-    } else if (auth.startsWith("rb_live") && process.env.STAGING) {
-      return {
-        ok: false,
-        status: 401,
-        status_code: "live_key_not_allowed",
-        message: "Live API keys are not allowed in staging",
-      };
+    if (auth.startsWith("rb_test_")) {
+      if (!process.env.STAGING)
+        return {
+          ok: false,
+          status: 401,
+          status_code: "test_key_not_allowed",
+          message: "Test API keys are not allowed in production",
+        };
+    } else if (auth.startsWith("rb_live_")) {
+      if (process.env.STAGING)
+        return {
+          ok: false,
+          status: 401,
+          status_code: "live_key_not_allowed",
+          message: "Live API keys are not allowed in staging",
+        };
     } else {
       return {
         ok: false,

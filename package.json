@@ -16,7 +16,7 @@
     "@web4.0/identity": "^1.0.36",
     "dotenv": "^17.2.3",
     "firebase-admin": "^13.7.0",
-    "godprotocol": "^2.3.87",
+    "godprotocol": "^2.3.88",
     "net": "^1.0.2",
     "socket-io": "^1.0.0"
   }

@@ -30,10 +30,6 @@ gp.callback({
   error: on_error_callback,
 });
 
-gp.on_start(() => {
-  global.gp = gp;
-});
-
 await gp.boot();
 
 export default gp.on_request;
