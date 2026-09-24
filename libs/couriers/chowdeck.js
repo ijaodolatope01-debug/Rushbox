@@ -1,5 +1,6 @@
 import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
+import crypto from "crypto";
 
 const estimate_chowdeck = async ({
   pickup_latitude,
@@ -101,36 +102,38 @@ async function create_chowdeck(details) {
 }
 
 const webhook_chowdeck = async (req, { staging }) => {
-  console.log(
-    await (
-      await req.db.folder("Webhook_payload")
-    ).insertOne({ _id: crypto.randomUUID(), body: req.body }),
-  );
+  const body = JSON.stringify(req.body);
 
-  const hash = crypto
+  await (
+    await req.db.folder("Webhook_payload")
+  ).insertOne({
+    _id: crypto.randomUUID(),
+    body: req.body,
+    created: Date.now(),
+  });
+
+  const signature = crypto
     .createHmac(
-      "sha512",
+      "sha256",
       staging ? process.env.CHOW_TEST_TOKEN : process.env.CHOWDECK_TOKEN,
     )
-    .update(JSON.stringify(req.body))
+    .update(body)
     .digest("hex");
 
-  console.log(hash, staging);
+  console.log({
+    generated: signature,
+    received: req.headers["x-chowdeck-signature"],
+    staging,
+  });
 
-  // if (hash != req.headers["x-chowdeck-signature"]) {
-  //   return false;
-  // }
-  console.log(req);
+  if (signature !== req.headers["x-chowdeck-signature"]) {
+    return false;
+  }
 
-  // Retrieve the request's body
   const event = req.body;
-  let { status, data } = event;
+  const { payload, category } = event;
 
-  let id = data?.tracking?.[0]?.trackingId;
-
-  console.log(id);
-
-  return await update_ongoing_status(id, status.split(".")[1], "chowdeck", {
+  return await update_ongoing_status(payload.id, category, "chowdeck", {
     db: req.db,
   });
 };

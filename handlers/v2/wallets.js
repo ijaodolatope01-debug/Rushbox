@@ -30,11 +30,11 @@ const get_wallet = async (req) => {
 };
 
 const transactions = async (req) => {
-  let { headers, db, body } = req;
+  let { headers, db, query } = req;
 
   let { profile } = headers;
   let wallet = profile._id;
-  let { page, limit } = body;
+  let { page, limit } = query;
 
   let txs = await db.folder("Transactions");
 
