@@ -242,7 +242,12 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
   // COURIER WEBHOOK
   // ============================================================
 
-  if (route === "courier_webhook/:courier" && result?.data) {
+  if (
+    ["courier_webhook/:courier", "courier_webhook/:courier/staging"].includes(
+      route,
+    ) &&
+    result?.data
+  ) {
     await courier_webhook_callback({ order: result.data?.order, req });
   } else if (route === "create_delivery") {
     const { data } = result;
