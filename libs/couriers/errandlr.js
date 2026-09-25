@@ -1,6 +1,6 @@
 import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
-import crypto from "crypto"; // added import
+import crypto from "crypto";
 
 const estimate_errandlr = async ({
   pickup_address,
@@ -24,20 +24,15 @@ const estimate_errandlr = async ({
       },
     };
     debug(bdy);
-    const response = await fetch(
-      process.env.STAGING && false
-        ? "https://green.errandlr.com/v2/estimate"
-        : "https://commerce.errandlr.com/v2/estimate",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${process.env.STAGING && false ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
-        },
-        body: JSON.stringify(bdy),
+    const response = await fetch("https://commerce.errandlr.com/v2/estimate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
       },
-    );
+      body: JSON.stringify(bdy),
+    });
 
     const data = await response.json();
 
@@ -63,15 +58,14 @@ async function create_errandlr(details) {
     sender_name,
     sender_email,
     sender_phone,
-    destination_latitude,
-    destination_longitude,
     pickup_latitude,
     pickup_longitude,
-    pickup_notes,
+    pickup_note,
     order_name,
-    order_number,
     recipient_phone,
     package_detail,
+    value_of_item,
+    destination_address,
     delivery_notes,
     destination_state,
     destination_country,
@@ -89,14 +83,16 @@ async function create_errandlr(details) {
     phone: sender_phone,
     latitude: pickup_latitude,
     longitude: pickup_longitude,
-    pickupNotes: pickup_notes,
+    pickupNotes: pickup_note,
     deliverToInformation: [
       {
-        order: 1,
+        order: 0,
         name: order_name,
         phone: recipient_phone,
         packageDetail: package_detail,
+        address: destination_address,
         deliveryNotes: delivery_notes,
+        packageValue: value_of_item,
       },
     ],
     state: destination_state,
@@ -107,20 +103,15 @@ async function create_errandlr(details) {
 
   debug(JSON.stringify(body, null, 2), "errand delivery body");
   try {
-    const response = await fetch(
-      process.env.STAGING && false
-        ? "https://green.errandlr.com/request"
-        : "https://commerce.errandlr.com/request",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${process.env.STAGING && false ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
-        },
-        body: JSON.stringify(body),
+    const response = await fetch("https://commerce.errandlr.com/request", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
       },
-    );
+      body: JSON.stringify(body),
+    });
 
     data = await response.json();
     console.log(data, "errand response");
