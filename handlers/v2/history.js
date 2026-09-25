@@ -1,7 +1,4 @@
-import {
-  normalise_order,
-  update_status_of_ongoing_orders,
-} from "../../libs/history.js";
+import { normalise_order } from "../../libs/history.js";
 
 const history = async (req) => {
   let { body, headers, db } = req;

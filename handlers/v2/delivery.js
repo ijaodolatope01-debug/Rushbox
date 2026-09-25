@@ -14,6 +14,7 @@ import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { courier_webhook } from "./webhook.js";
 import { courier_webhook_callback } from "../../libs/callbacks.js";
+import { get_order, history } from "./history.js";
 
 const debug = (...args) => {
   if (process.env.DEV) {
@@ -379,7 +380,20 @@ const create_delivery = async (req, opts) => {
         });
 
         if (ress.ok) {
-          await courier_webhook_callback({ order: norm, req });
+          let new_norm = await get_order({
+            ...req,
+            body: { _id: norm.order_id },
+          });
+
+          if (!new_norm?.ok) {
+            new_norm = norm;
+          } else {
+            new_norm = new_norm.data;
+          }
+          await courier_webhook_callback({
+            order: new_norm,
+            req,
+          });
         }
       }
     }
