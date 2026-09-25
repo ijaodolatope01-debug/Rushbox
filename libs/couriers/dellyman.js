@@ -166,49 +166,31 @@ let webhook_dellyman = async (req, { staging }) => {
   console.log("[DELLYMAN] Body:", req.body);
   console.log("[DELLYMAN] Body:", req.raw_body);
 
-  console.log(
-    await (
-      await req.db.folder("Dellyman_webhook")
-    ).insertOne({
-      _id: crypto.randomUUID(),
-      raw_body: req.raw_body,
-      body: req.body,
-      type_raw: typeof req.raw_body,
-      type_body: typeof req.body,
-    }),
-    "written to db",
-  );
   const token = staging
     ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
     : process.env.DELLYMAN_WEBHOOK_SECRET;
 
   console.log("[DELLYMAN] Token configured:", !!token);
 
-  let hash1 = crypto
+  let hash = crypto
     .createHmac("sha256", token)
-    .update(JSON.stringify(req.raw_body))
+    .update(req.raw_body)
     .digest("hex");
 
-  let hash2 = crypto
-    .createHmac("sha256", token)
-    .update(JSON.stringify(req.body))
-    .digest("hex");
-
-  console.log("[DELLYMAN] Generated signature1:", hash1);
-  console.log("[DELLYMAN] Generated signature2:", hash2);
+  console.log("[DELLYMAN] Generated signature1:", hash);
 
   const received_signature =
     req.headers["X-Dellyman-Signature"] || req.headers["x-dellyman-signature"];
 
   console.log("[DELLYMAN] Received signature:", received_signature);
 
-  console.log("[DELLYMAN] Signature valid:", hash1 === received_signature);
+  console.log("[DELLYMAN] Signature valid:", hash === received_signature);
 
-  let event = req.body;
+  let event = req.raw_body;
 
   console.log("[DELLYMAN] Event:", event);
 
-  let { status, order } = event;
+  let { status, order } = JSON.parse(event);
 
   console.log("[DELLYMAN] Status:", status);
 
