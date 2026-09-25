@@ -1,15 +1,11 @@
 import {
   delivery_failed,
-  DELIVERY_STATUSES,
   normalise_order_response,
   store_delivery,
   validateEstimate,
 } from "../../libs/delivery.js";
 
-import {
-  courierStrategies,
-  webhook_courier,
-} from "../../libs/couriers/index.js";
+import { courierStrategies } from "../../libs/couriers/index.js";
 import {
   handle_payment_ref,
   initializePaystackTransaction,
@@ -17,6 +13,7 @@ import {
 import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { courier_webhook } from "./webhook.js";
+import { courier_webhook_callback } from "../../libs/callbacks.js";
 
 const debug = (...args) => {
   if (process.env.DEV) {
@@ -376,10 +373,14 @@ const create_delivery = async (req, opts) => {
 
       debug(webhook_order, "hiiii");
       if (webhook_order) {
-        await courier_webhook(req, {
+        let ress = await courier_webhook(req, {
           courier: norm.courier,
           webhook_order: webhook_order.order,
         });
+
+        if (ress.ok) {
+          await courier_webhook_callback({ order: norm, req });
+        }
       }
     }
     return {

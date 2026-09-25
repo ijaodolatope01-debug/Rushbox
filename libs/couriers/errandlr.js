@@ -25,7 +25,7 @@ const estimate_errandlr = async ({
     };
     debug(bdy);
     const response = await fetch(
-      process.env.STAGING
+      process.env.STAGING && false
         ? "https://green.errandlr.com/v2/estimate"
         : "https://commerce.errandlr.com/v2/estimate",
       {
@@ -33,7 +33,7 @@ const estimate_errandlr = async ({
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
+          Authorization: `Bearer ${process.env.STAGING && false ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
         },
         body: JSON.stringify(bdy),
       },
@@ -108,7 +108,7 @@ async function create_errandlr(details) {
   debug(JSON.stringify(body, null, 2), "errand delivery body");
   try {
     const response = await fetch(
-      process.env.STAGING
+      process.env.STAGING && false
         ? "https://green.errandlr.com/request"
         : "https://commerce.errandlr.com/request",
       {
@@ -116,7 +116,7 @@ async function create_errandlr(details) {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${process.env.STAGING ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
+          Authorization: `Bearer ${process.env.STAGING && false ? process.env.ERRANDLR_TEST_TOKEN : process.env.ERRANDLR_TOKEN}`,
         },
         body: JSON.stringify(body),
       },

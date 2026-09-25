@@ -14,7 +14,7 @@ const history = async (req) => {
 
   let orders = [];
 
-  if (!skip) await update_status_of_ongoing_orders(user_id, req);
+  // if (!skip) await update_status_of_ongoing_orders(user_id, req);
 
   let Orders = await db.folder("Orders");
 
