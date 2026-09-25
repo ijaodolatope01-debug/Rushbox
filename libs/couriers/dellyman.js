@@ -166,6 +166,15 @@ let webhook_dellyman = async (req, { staging }) => {
   console.log("[DELLYMAN] Body:", req.body);
   console.log("[DELLYMAN] Body:", req.raw_body);
 
+  await (
+    await db.folder("Dellyman_webhook")
+  ).insertOne({
+    _id: crypto.randomUUID(),
+    raw_body: req.raw_body,
+    body: req.body,
+    type_raw: typeof req.raw_body,
+    type_body: typeof req.body,
+  });
   const token = staging
     ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
     : process.env.DELLYMAN_WEBHOOK_SECRET;
