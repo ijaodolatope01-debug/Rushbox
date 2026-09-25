@@ -242,6 +242,7 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
   // COURIER WEBHOOK
   // ============================================================
 
+  console.log(route);
   if (
     ["courier_webhook/:courier", "courier_webhook/:courier/staging"].includes(
       route,
