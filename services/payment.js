@@ -43,7 +43,7 @@ async function initializePaystackTransaction({
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.PAYSTACK_TEST_SECRET}`,
+        Authorization: `Bearer ${process.env.STAGING ? process.env.PAYSTACK_TEST_SECRET : process.env.PAYSTACK_SECRET}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
