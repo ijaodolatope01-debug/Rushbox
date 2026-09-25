@@ -6,7 +6,8 @@ import { send_notification } from "./push_noti.js";
 import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { hash } from "../../libs/utils/hash.js";
 
-const courier_webhook = async (req) => {
+const courier_webhook = async (req, opts = {}) => {
+  let { webhook_order } = opts;
   console.log("========== COURIER WEBHOOK START ==========");
 
   let { params, db, body, headers, query } = req;
@@ -37,7 +38,7 @@ const courier_webhook = async (req) => {
   let result;
 
   try {
-    result = await handler(req, { staging: query.staging });
+    result = await handler(req, { staging: query.staging, webhook_order });
     console.log("[WEBHOOK] Handler result:", result);
   } catch (error) {
     console.error("[WEBHOOK] Handler error:", error);

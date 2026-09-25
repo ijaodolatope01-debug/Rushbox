@@ -6,13 +6,17 @@ import {
   validateEstimate,
 } from "../../libs/delivery.js";
 
-import { courierStrategies } from "../../libs/couriers/index.js";
+import {
+  courierStrategies,
+  webhook_courier,
+} from "../../libs/couriers/index.js";
 import {
   handle_payment_ref,
   initializePaystackTransaction,
 } from "../../services/payment.js";
 import { charge_wallet, revert_wallet } from "../../services/wallet.js";
 import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
+import { courier_webhook } from "./webhook.js";
 
 const debug = (...args) => {
   if (process.env.DEV) {
@@ -364,6 +368,17 @@ const create_delivery = async (req, opts) => {
     debug("[create_delivery] Delivery created successfully", {
       rushbox_id,
     });
+
+    if (norm.courier_tracking) {
+      let webhook_order = await (
+        await db.folder("Webhook_orders")
+      ).findOne({ courier_key: norm.courier_tracking });
+
+      console.log(webhook_order, "hiiii");
+      if (webhook_order) {
+        await courier_webhook(req, { courier: norm.courier, webhook_order });
+      }
+    }
     return {
       ok: true,
       data: norm,

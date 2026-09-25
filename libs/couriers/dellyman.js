@@ -158,39 +158,50 @@ async function create_dellyman(details) {
   return reply;
 }
 
-let webhook_dellyman = async (req, { staging }) => {
+let webhook_dellyman = async (req, { staging, webhook_order }) => {
   console.log("========== DELLYMAN WEBHOOK START ==========");
 
-  console.log("[DELLYMAN] Staging:", staging);
-  console.log("[DELLYMAN] Headers:", req.headers);
-  console.log("[DELLYMAN] Body:", req.body);
-  console.log("[DELLYMAN] Body:", req.raw_body);
+  if (!webhook_order) {
+    console.log("[DELLYMAN] Staging:", staging);
+    console.log("[DELLYMAN] Headers:", req.headers);
+    console.log("[DELLYMAN] Body:", req.body);
+    console.log("[DELLYMAN] Body:", req.raw_body);
 
-  const token = staging
-    ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
-    : process.env.DELLYMAN_WEBHOOK_SECRET;
+    const token = staging
+      ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
+      : process.env.DELLYMAN_WEBHOOK_SECRET;
 
-  console.log("[DELLYMAN] Token configured:", !!token);
+    console.log("[DELLYMAN] Token configured:", !!token);
 
-  let hash = crypto
-    .createHmac("sha256", token)
-    .update(req.raw_body)
-    .digest("hex");
+    let hash = crypto
+      .createHmac("sha256", token)
+      .update(req.raw_body)
+      .digest("hex");
 
-  console.log("[DELLYMAN] Generated signature1:", hash);
+    console.log("[DELLYMAN] Generated signature1:", hash);
 
-  const received_signature =
-    req.headers["X-Dellyman-Signature"] || req.headers["x-dellyman-signature"];
+    const received_signature =
+      req.headers["X-Dellyman-Signature"] ||
+      req.headers["x-dellyman-signature"];
 
-  console.log("[DELLYMAN] Received signature:", received_signature);
+    console.log("[DELLYMAN] Received signature:", received_signature);
 
-  console.log("[DELLYMAN] Signature valid:", hash === received_signature);
+    console.log("[DELLYMAN] Signature valid:", hash === received_signature);
 
-  let event = req.raw_body;
+    if (hash != received_signature) {
+      console.log("[DELLYMAN] Invalid signature");
+
+      console.log("========== DELLYMAN WEBHOOK END ==========");
+
+      return false;
+    }
+  }
+
+  let event = webhook_order || JSON.parse(req.raw_body);
 
   console.log("[DELLYMAN] Event:", event);
 
-  let { status, order } = JSON.parse(event);
+  let { status, order } = event;
 
   console.log("[DELLYMAN] Status:", status);
 
@@ -198,14 +209,6 @@ let webhook_dellyman = async (req, { staging }) => {
 
   if (!status) {
     console.log("[DELLYMAN] Missing status");
-
-    console.log("========== DELLYMAN WEBHOOK END ==========");
-
-    return false;
-  }
-
-  if (hash != received_signature) {
-    console.log("[DELLYMAN] Invalid signature");
 
     console.log("========== DELLYMAN WEBHOOK END ==========");
 
@@ -235,6 +238,7 @@ let webhook_dellyman = async (req, { staging }) => {
       "dellyman",
       {
         db: req.db,
+        webhook_payload: event,
       },
     );
 

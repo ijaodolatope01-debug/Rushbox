@@ -7,6 +7,8 @@ const boots = async () => {
     db_url: process.env.MONGODB_URI,
     db_name: "rushbox",
   });
+
+  // return;
   let fold = await (await repo.collection("Dellyman_webhook"))
     .find({})
     .toArray();

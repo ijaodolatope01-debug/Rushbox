@@ -1,6 +1,11 @@
 import STATUSES_MAPS, { STATUSES_MESSAGE } from "../couriers/statuses_map.js";
 
-const update_ongoing_status = async (courier_key, status, courier, { db }) => {
+const update_ongoing_status = async (
+  courier_key,
+  status,
+  courier,
+  { db, webhook_payload },
+) => {
   console.log("========== UPDATE ONGOING STATUS START ==========");
 
   courier_key = courier_key.toString();
@@ -58,6 +63,17 @@ const update_ongoing_status = async (courier_key, status, courier, { db }) => {
       },
     ),
   );
+
+  let order = await Orders.findOne({ courier_key });
+  if (!order) {
+    await (
+      await db.folder("Webhook_orders")
+    ).insertOne({
+      _id: crypto.randomUUID(),
+      courier_key,
+      order: webhook_payload,
+    });
+  }
 
   update.status_message = STATUSES_MESSAGE[ongoing_status];
   const result = await Orders.findOneAndUpdate(
