@@ -374,9 +374,12 @@ const create_delivery = async (req, opts) => {
         await db.folder("Webhook_orders")
       ).findOne({ courier_key: norm.courier_tracking });
 
-      console.log(webhook_order, "hiiii");
+      debug(webhook_order, "hiiii");
       if (webhook_order) {
-        await courier_webhook(req, { courier: norm.courier, webhook_order });
+        await courier_webhook(req, {
+          courier: norm.courier,
+          webhook_order: webhook_order.order,
+        });
       }
     }
     return {

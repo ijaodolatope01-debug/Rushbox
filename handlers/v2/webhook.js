@@ -7,11 +7,11 @@ import { STATUSES_MESSAGE } from "../../libs/couriers/statuses_map.js";
 import { hash } from "../../libs/utils/hash.js";
 
 const courier_webhook = async (req, opts = {}) => {
-  let { webhook_order } = opts;
+  let { webhook_order, courier } = opts;
   console.log("========== COURIER WEBHOOK START ==========");
 
   let { params, db, body, headers, query } = req;
-  let { courier } = params;
+  courier = courier || params.courier;
 
   console.log("[WEBHOOK] Params:", params);
   console.log("[WEBHOOK] Courier:", courier);
