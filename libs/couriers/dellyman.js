@@ -43,7 +43,7 @@ let estimate_dellyman = async ({ pickup_address, destination_address }) => {
   }
 };
 
-async function create_dellyman(details, { req }) {
+async function create_dellyman(details) {
   let {
     reference,
     company_id,
@@ -164,6 +164,7 @@ let webhook_dellyman = async (req, { staging }) => {
   console.log("[DELLYMAN] Staging:", staging);
   console.log("[DELLYMAN] Headers:", req.headers);
   console.log("[DELLYMAN] Body:", req.body);
+  console.log("[DELLYMAN] Body:", req.raw_body);
 
   const token = staging
     ? process.env.DELLYMAN_WEBHOOK_SECRET_TEST
@@ -171,19 +172,25 @@ let webhook_dellyman = async (req, { staging }) => {
 
   console.log("[DELLYMAN] Token configured:", !!token);
 
-  let hash = crypto
+  let hash1 = crypto
+    .createHmac("sha256", token)
+    .update(JSON.stringify(req.raw_body))
+    .digest("hex");
+
+  let hash2 = crypto
     .createHmac("sha256", token)
     .update(JSON.stringify(req.body))
     .digest("hex");
 
-  console.log("[DELLYMAN] Generated signature:", hash);
+  console.log("[DELLYMAN] Generated signature1:", hash1);
+  console.log("[DELLYMAN] Generated signature2:", hash2);
 
   const received_signature =
     req.headers["X-Dellyman-Signature"] || req.headers["x-dellyman-signature"];
 
   console.log("[DELLYMAN] Received signature:", received_signature);
 
-  console.log("[DELLYMAN] Signature valid:", hash === received_signature);
+  console.log("[DELLYMAN] Signature valid:", hash1 === received_signature);
 
   let event = req.body;
 
