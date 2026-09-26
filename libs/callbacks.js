@@ -5,20 +5,20 @@ import { hash } from "./utils/hash.js";
 import { handle_bank_account } from "./utils/payment_gateway.js";
 
 const courier_webhook_callback = async ({ order: payload, req }) => {
-  console.log("========== COURIER WEBHOOK CALLBACK START ==========");
-
   let db = req.db;
 
   let Webhooks = await db.folder("Webhooks");
 
   let { debug } = req.gp.utils;
 
+  debug("========== COURIER WEBHOOK CALLBACK START ==========");
+
   debug("[COURIER] Incoming payload:");
   debug(JSON.stringify(payload, null, 2));
 
   if (!payload) {
     debug("[COURIER] Missing payload");
-    console.log("========== COURIER WEBHOOK CALLBACK END ==========");
+    debug("========== COURIER WEBHOOK CALLBACK END ==========");
     return;
   }
 
@@ -200,7 +200,7 @@ const courier_webhook_callback = async ({ order: payload, req }) => {
     debug("[WEBHOOK] Courier webhook failed:", error);
   }
 
-  console.log("========== COURIER WEBHOOK CALLBACK END ==========");
+  debug("========== COURIER WEBHOOK CALLBACK END ==========");
 };
 
 const normalize_email_order = (order = {}) => ({
@@ -242,7 +242,6 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
   // COURIER WEBHOOK
   // ============================================================
 
-  console.log(route);
   if (
     ["courier_webhook/:courier", "courier_webhook/:courier/staging"].includes(
       route,

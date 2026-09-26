@@ -221,6 +221,7 @@ const fetch_estimates = async (req) => {
     await db.folder("Estimates")
   ).insertOne({
     _id: estimate_id,
+    profile: profile._id,
     payload: swap_payload_key(payload),
     estimates: normalized,
     used: false,

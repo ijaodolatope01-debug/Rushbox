@@ -204,7 +204,12 @@ const create_delivery = async (req, opts) => {
     details.rushbox_id = rushbox_id;
     debug("[create_delivery] Generated rushbox_id", { rushbox_id });
 
-    let estimate = await validateEstimate(details.estimate_id, courierName, db);
+    let estimate = await validateEstimate(
+      details.estimate_id,
+      courierName,
+      db,
+      details.user_id,
+    );
     if (typeof estimate === "string") {
       debug("[create_delivery] Estimate validation failed", {
         error: estimate,
