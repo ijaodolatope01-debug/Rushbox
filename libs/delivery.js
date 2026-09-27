@@ -44,7 +44,6 @@ const validateEstimate = async (estimate_id, courier, db, profile) => {
     await db.folder("Estimates")
   ).findOne({ _id: estimate_id, profile });
 
-  console.log(estimate, "hey");
   let courier_estimate = estimate?.estimates?.[courier];
 
   if (!estimate) return "";
