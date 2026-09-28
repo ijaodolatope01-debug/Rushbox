@@ -149,23 +149,21 @@ const webhook_kwikpik = async (req, { staging }) => {
   try {
     console.log("========== KWIKPIK WEBHOOK START ==========");
 
-    const sig = req.headers?.["x-kwikpik-signature"];
+    const signatureHeader = req.headers?.["x-kwikpik-signature"];
 
     console.log("[KWIKPIK] staging:", staging);
-    console.log("[KWIKPIK] signature header:", sig);
+    console.log("[KWIKPIK] signature header:", signatureHeader);
 
-    if (!sig || typeof sig !== "string") {
+    if (!signatureHeader || typeof signatureHeader !== "string") {
       console.log("[KWIKPIK] missing signature header");
       return false;
     }
 
-    const parts = sig.split(",");
+    const parts = signatureHeader.split(",");
 
-    console.log("[KWIKPIK] signature parts:", parts);
+    const timestampPart = parts.find((part) => part.trim().startsWith("t="));
 
-    const timestampPart = parts.find((v) => v.trim().startsWith("t="));
-
-    const signaturePart = parts.find((v) => v.trim().startsWith("v1="));
+    const signaturePart = parts.find((part) => part.trim().startsWith("v1="));
 
     if (!timestampPart || !signaturePart) {
       console.log("[KWIKPIK] invalid signature format");
@@ -177,26 +175,24 @@ const webhook_kwikpik = async (req, { staging }) => {
     const timestamp = timestampPart.trim().split("=")[1];
     const signature = signaturePart.trim().split("=")[1];
 
-    console.log("[KWIKPIK] timestamp:", timestamp);
-    console.log("[KWIKPIK] signature:", signature);
-
     if (!timestamp || !signature) {
       console.log("[KWIKPIK] missing timestamp or signature");
       return false;
     }
 
-    const parsedTimestamp = Number(timestamp);
+    const timestampNumber = Number(timestamp);
 
-    if (!Number.isFinite(parsedTimestamp)) {
+    if (!Number.isFinite(timestampNumber)) {
       console.log("[KWIKPIK] invalid timestamp:", timestamp);
       return false;
     }
 
+    // Check timestamp is recent (within 5 minutes)
     const now = Math.floor(Date.now() / 1000);
-
-    const timestampDifference = Math.abs(now - parsedTimestamp);
+    const timestampDifference = Math.abs(now - timestampNumber);
 
     console.log("[KWIKPIK] current timestamp:", now);
+    console.log("[KWIKPIK] webhook timestamp:", timestampNumber);
     console.log("[KWIKPIK] timestamp difference:", timestampDifference);
 
     if (timestampDifference > 300) {
@@ -213,13 +209,19 @@ const webhook_kwikpik = async (req, { staging }) => {
       return false;
     }
 
-    const payloadString = JSON.stringify(req.body);
+    const payload = req.body || {};
 
-    console.log("[KWIKPIK] payload string:", payloadString);
+    console.log("[KWIKPIK] payload:", JSON.stringify(payload, null, 2));
 
-    const signingString = `${timestamp}.${payloadString}`;
-
-    console.log("[KWIKPIK] signing string:", signingString);
+    /*
+     * Kwikpik signature:
+     *
+     * HMAC-SHA256(
+     *   secret,
+     *   `${timestamp}.${JSON.stringify(payload)}`
+     * )
+     */
+    const signingString = `${timestamp}.${JSON.stringify(payload)}`;
 
     const expectedSignature = crypto
       .createHmac("sha256", secret)
@@ -227,31 +229,19 @@ const webhook_kwikpik = async (req, { staging }) => {
       .digest("hex");
 
     console.log("[KWIKPIK] received signature:", signature);
-
     console.log("[KWIKPIK] expected signature:", expectedSignature);
 
-    if (
-      typeof signature !== "string" ||
-      signature.length !== expectedSignature.length
-    ) {
+    if (signature.length !== expectedSignature.length) {
       console.log("[KWIKPIK] signature length mismatch");
       return false;
     }
 
-    let valid = false;
+    const valid = crypto.timingSafeEqual(
+      Buffer.from(signature, "utf8"),
+      Buffer.from(expectedSignature, "utf8"),
+    );
 
-    try {
-      valid = crypto.timingSafeEqual(
-        Buffer.from(signature, "utf8"),
-        Buffer.from(expectedSignature, "utf8"),
-      );
-    } catch (error) {
-      console.log("[KWIKPIK] timingSafeEqual error:", error);
-
-      return false;
-    }
-
-    console.log("[KWIKPIK] timing safe comparison:", valid);
+    console.log("[KWIKPIK] signature valid:", valid);
 
     if (!valid) {
       console.log("[KWIKPIK] signature validation failed");
@@ -260,20 +250,33 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     console.log("[KWIKPIK] signature validation passed");
 
-    const event = req.body || {};
+    /*
+     * Extract order information.
+     *
+     * Kwikpik can send different event structures, so support
+     * the known status/request ID locations.
+     */
+    const status = payload.status || payload.data?.status;
 
-    console.log("[KWIKPIK] event payload:", JSON.stringify(event, null, 2));
+    const request_id =
+      payload.requestId || payload.data?.trackingId || payload.data?.requestId;
 
-    const status = event.status || event?.data?.status;
+    console.log("[KWIKPIK] event:", payload.event);
+    console.log("[KWIKPIK] status:", status);
+    console.log("[KWIKPIK] request_id:", request_id);
 
-    const request_id = event.requestId || event?.data?.trackingId;
-
-    console.log("[KWIKPIK] extracted status:", status);
-    console.log("[KWIKPIK] extracted request_id:", request_id);
-
+    /*
+     * order.created does not contain a delivery status or
+     * request/tracking ID in the payload you showed.
+     *
+     * It is therefore authenticated successfully but there is
+     * nothing to update in Ongoing yet.
+     */
     if (!status) {
       console.log("[KWIKPIK] missing status");
-      return false;
+      console.log("[KWIKPIK] event does not contain a status; ignoring event");
+
+      return true;
     }
 
     if (!request_id) {
@@ -286,24 +289,16 @@ const webhook_kwikpik = async (req, { staging }) => {
       return false;
     }
 
-    console.log("[KWIKPIK] Updating ongoing status:", {
-      request_id,
-      status,
-      courier: "kwikpik",
-    });
-
     const result = await update_ongoing_status(request_id, status, "kwikpik", {
       db: req.db,
     });
 
     console.log("[KWIKPIK] update result:", result);
-
     console.log("========== KWIKPIK WEBHOOK END ==========");
 
     return result;
   } catch (error) {
     console.error("[KWIKPIK] fatal webhook error:", error);
-
     console.log("========== KWIKPIK WEBHOOK END ==========");
 
     return false;
