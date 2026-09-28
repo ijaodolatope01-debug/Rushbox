@@ -40,7 +40,6 @@ const delivery_failed = async (message, details, db) => {
 };
 
 const validateEstimate = async (estimate_id, courier, db, profile) => {
-  console.log(db);
   let estimate = await (
     await db.folder("Estimates")
   ).findOne({ _id: estimate_id, profile });
