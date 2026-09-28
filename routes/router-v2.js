@@ -24,6 +24,7 @@ import {
   get_reviews,
 } from "../handlers/v2/reviews.js";
 import {
+  agent_retrieve_order,
   assign_support_chat,
   create_chat_agent,
   create_chat_session,
@@ -466,6 +467,23 @@ const router = {
       },
       body: {
         date: { type: "string" },
+      },
+    },
+  },
+  agent_retrieve_order: {
+    handler: agent_retrieve_order,
+    security: "auth_token",
+    schema: {
+      headers: {
+        "profile.profile": {
+          required: true,
+          type: "string",
+          enum: ["2baa7e8d-5d74-4ebc-ad50-3332593d01be"],
+        },
+      },
+      body: {
+        session_id: { type: "string", required: true },
+        order_id: { type: "string", required: true },
       },
     },
   },

@@ -427,6 +427,10 @@ const header_callback = async ({ headers }, gp) => {
       };
     }
   }
+
+  if (process.env.STAGING) {
+    gp.route_table.db_prefix = "STAGING";
+  }
 };
 
 const on_error_callback = async (payload, gp) => {

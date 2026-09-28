@@ -1,5 +1,6 @@
 import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
+import crypto from "crypto";
 
 const estimate_kwikpik = async ({
   pickup_address,
@@ -145,104 +146,125 @@ async function create_kwikpik(details) {
 }
 
 const webhook_kwikpik = async (req, { staging }) => {
-  const sig = req.headers["x-kwikpik-signature"];
+  try {
+    console.log("========== KWIKPIK WEBHOOK START ==========");
 
-  console.log("[KWIKPIK] webhook received");
-  console.log("[KWIKPIK] staging:", staging);
-  console.log("[KWIKPIK] signature header:", sig);
+    const sig = req.headers?.["x-kwikpik-signature"];
 
-  if (sig) {
-    const [timestampPart, signaturePart] = sig.split(",");
+    console.log("[KWIKPIK] staging:", staging);
+    console.log("[KWIKPIK] signature header:", sig);
 
-    console.log("[KWIKPIK] timestamp part:", timestampPart);
-    console.log("[KWIKPIK] signature part:", signaturePart);
-
-    const timestamp = timestampPart?.split("=")?.[1];
-    const signature = signaturePart?.split("=")?.[1];
-
-    console.log("[KWIKPIK] parsed timestamp:", timestamp);
-    console.log("[KWIKPIK] parsed signature:", signature);
-
-    const now = Math.floor(Date.now() / 1000);
-
-    console.log("[KWIKPIK] current timestamp:", now);
-    console.log(
-      "[KWIKPIK] timestamp difference:",
-      Math.abs(now - parseInt(timestamp)),
-    );
-
-    if (Math.abs(now - parseInt(timestamp)) > 300) {
-      console.log("[KWIKPIK] timestamp validation failed");
+    if (!sig || typeof sig !== "string") {
+      console.log("[KWIKPIK] missing signature header");
       return false;
     }
 
-    const payload_string = JSON.stringify(req.body);
+    const parts = sig.split(",");
 
-    console.log("[KWIKPIK] payload string:", payload_string);
+    if (parts.length < 2) {
+      console.log("[KWIKPIK] invalid signature format");
+      return false;
+    }
 
-    const signing_string = `${timestamp}.${payload_string}`;
+    const timestampPart = parts.find((v) => v.startsWith("t="));
+    const signaturePart = parts.find((v) => v.startsWith("s="));
 
-    console.log("[KWIKPIK] signing string:", signing_string);
+    if (!timestampPart || !signaturePart) {
+      console.log("[KWIKPIK] missing t= or s= section");
+      return false;
+    }
+
+    const timestamp = timestampPart.split("=")[1];
+    const signature = signaturePart.split("=")[1];
+
+    if (!timestamp || !signature) {
+      console.log("[KWIKPIK] timestamp or signature missing");
+      return false;
+    }
+
+    const parsedTimestamp = Number(timestamp);
+
+    if (Number.isNaN(parsedTimestamp)) {
+      console.log("[KWIKPIK] invalid timestamp");
+      return false;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+    const diff = Math.abs(now - parsedTimestamp);
+
+    console.log("[KWIKPIK] timestamp diff:", diff);
+
+    if (diff > 300) {
+      console.log("[KWIKPIK] timestamp expired");
+      return false;
+    }
 
     const secret = staging
       ? process.env.KWIKPIK_TEST_TOKEN
       : process.env.KWIKPIK_TOKEN;
 
-    console.log("[KWIKPIK] using secret:", secret);
+    if (!secret) {
+      console.log("[KWIKPIK] missing webhook secret");
+      return false;
+    }
+
+    const payloadString = JSON.stringify(req.body);
+
+    const signingString = `${timestamp}.${payloadString}`;
 
     const expectedSignature = crypto
       .createHmac("sha256", secret)
-      .update(signing_string)
+      .update(signingString)
       .digest("hex");
 
-    console.log("[KWIKPIK] received signature:", signature);
-    console.log("[KWIKPIK] expected signature:", expectedSignature);
-    console.log("[KWIKPIK] signatures match:", signature === expectedSignature);
+    console.log("[KWIKPIK] received:", signature);
+    console.log("[KWIKPIK] expected:", expectedSignature);
 
-    let valid = false;
-
-    try {
-      valid = crypto.timingSafeEqual(
-        Buffer.from(signature),
-        Buffer.from(expectedSignature),
-      );
-    } catch (err) {
-      console.log("[KWIKPIK] timingSafeEqual error:", err);
+    if (signature.length !== expectedSignature.length) {
+      console.log("[KWIKPIK] signature length mismatch");
       return false;
     }
 
-    console.log("[KWIKPIK] timing safe comparison:", valid);
+    const valid = crypto.timingSafeEqual(
+      Buffer.from(signature, "utf8"),
+      Buffer.from(expectedSignature, "utf8"),
+    );
+
+    console.log("[KWIKPIK] signature valid:", valid);
 
     if (!valid) {
-      console.log("[KWIKPIK] signature validation failed");
       return false;
     }
-  } else {
-    console.log("[KWIKPIK] no signature header provided");
-  }
 
-  const event = req.body;
+    const event = req.body || {};
 
-  console.log("[KWIKPIK] event payload:", JSON.stringify(event, null, 2));
+    console.log("[KWIKPIK] event:", JSON.stringify(event, null, 2));
 
-  const status = event.status || event?.data?.status;
-  const request_id = event.requestId || event?.data?.trackingId;
+    const status = event.status || event?.data?.status;
 
-  console.log("[KWIKPIK] extracted status:", status);
-  console.log("[KWIKPIK] extracted request_id:", request_id);
+    const request_id = event.requestId || event?.data?.trackingId;
 
-  if (!status) {
-    console.log("[KWIKPIK] missing status");
+    console.log("[KWIKPIK] status:", status);
+    console.log("[KWIKPIK] request_id:", request_id);
+
+    if (!status || !request_id) {
+      console.log("[KWIKPIK] missing status or request_id");
+      return false;
+    }
+
+    const result = await update_ongoing_status(request_id, status, "kwikpik", {
+      db: req.db,
+    });
+
+    console.log("[KWIKPIK] update result:", result);
+    console.log("========== KWIKPIK WEBHOOK END ==========");
+
+    return result;
+  } catch (error) {
+    console.error("[KWIKPIK] webhook error:", error);
+    console.log("========== KWIKPIK WEBHOOK END ==========");
     return false;
   }
-
-  const result = await update_ongoing_status(request_id, status, "kwikpik", {
-    db: req.db,
-  });
-
-  console.log("[KWIKPIK] update result:", result);
-
-  return result;
 };
 
 export { estimate_kwikpik, create_kwikpik, webhook_kwikpik };
