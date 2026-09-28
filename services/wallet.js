@@ -1,8 +1,14 @@
+import { create_wallet } from "../libs/utils/payment_gateway.js";
+
 async function charge_wallet(user_id, value, order_id, payment_ref, db) {
   const Wallets = await db.folder("Wallets");
-  const wallet = await Wallets.findOne({ _id: user_id });
+  let wallet = await Wallets.findOne({ _id: user_id });
 
-  if (!wallet) return { ok: false, message: "Wallet not found" };
+  if (!wallet) {
+    if (process.env.STAGING) {
+      wallet = await create_wallet(user_id, db);
+    } else return { ok: false, message: "Wallet not found" };
+  }
 
   if (wallet.balance < value)
     return { ok: false, message: "Insufficient balance" };

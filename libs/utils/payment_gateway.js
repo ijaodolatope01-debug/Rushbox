@@ -150,6 +150,20 @@ const paystackRequest = async (endpoint, options = {}) => {
   return data;
 };
 
+const create_wallet = async (profile_id, db) => {
+  let wallet = {
+    _id: profile_id,
+    balance: 0,
+    virtual_account: null,
+    created: Date.now(),
+  };
+  await (
+    await db.folder("Wallets")
+  ).replaceOne({ _id: profile_id }, wallet, { upsert: true });
+
+  return wallet;
+};
+
 // Get banks available for transfers
 const get_paystack_banks = async ({
   country = "nigeria",
@@ -221,6 +235,7 @@ export {
   handle_bank_account,
   fetch_customer,
   update_customer,
+  create_wallet,
   get_paystack_banks,
   transfer_to_bank,
   resolve_bank_account,

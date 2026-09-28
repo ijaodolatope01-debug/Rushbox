@@ -429,8 +429,10 @@ const header_callback = async ({ headers }, gp) => {
 };
 
 const before_callback = async ({ route }, gp) => {
+  let db;
   if (process.env.STAGING) {
     gp.route_table.db_prefix = "STAGING";
+    db = await gp.route_table.platform_db("rushbox");
 
     const staging_disabled_routes = [
       // Auth / account
@@ -506,6 +508,11 @@ const before_callback = async ({ route }, gp) => {
       };
     }
   }
+
+  return {
+    ok: true,
+    db,
+  };
 };
 
 const on_error_callback = async (payload, gp) => {

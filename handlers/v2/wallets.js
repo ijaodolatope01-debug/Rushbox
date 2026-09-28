@@ -1,4 +1,5 @@
 import {
+  create_wallet,
   get_paystack_banks,
   resolve_bank_account,
   transfer_to_bank,
@@ -13,15 +14,7 @@ const get_wallet = async (req) => {
   let wallet = await (await db.folder("Wallets")).findOne({ _id: user_id });
   if (!wallet) {
     if (process.env.STAGING) {
-      wallet = {
-        _id: user_id,
-        balance: 0,
-        virtual_account: null,
-        created: Date.now(),
-      };
-      await (
-        await db.folder("Wallets")
-      ).replaceOne({ _id: user_id }, data, { upsert: true });
+      wallet = await create_wallet(user_id, db);
     } else
       return {
         ok: false,
