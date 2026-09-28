@@ -81,10 +81,18 @@ const history = async (req) => {
 const get_order = async (req) => {
   let { body, headers, db } = req;
   let { _id } = body;
-
+  let user_id = headers?.profile?._id;
   let Orders = await db.folder("Orders");
 
-  let order = await Orders.findOne({ _id });
+  let order = await Orders.findOne({ _id, user_id });
+  if (!order) {
+    return {
+      ok: false,
+      status: 404,
+      message: "Order not found",
+    };
+  }
+
   if (order) {
     order = normalise_order(order);
     order.review = await (await db.folder("Reviews")).findOne({ orderid: _id });
