@@ -12,15 +12,28 @@ const get_wallet = async (req) => {
 
   let wallet = await (await db.folder("Wallets")).findOne({ _id: user_id });
   if (!wallet) {
-    return {
-      ok: false,
-      message: "Wallet not found",
-      status: 401,
-    };
+    if (process.env.STAGING) {
+      wallet = {
+        _id: user_id,
+        balance: 0,
+        virtual_account: null,
+        created: Date.now(),
+      };
+      await (
+        await db.folder("Wallets")
+      ).replaceOne({ _id: user_id }, data, { upsert: true });
+    } else
+      return {
+        ok: false,
+        message: "Wallet not found",
+        status: 401,
+      };
   }
-  wallet.virtual_account = await (
-    await db.folder("Virtual_accounts")
-  ).findOne({ _id: wallet.virtual_account });
+
+  if (wallet.virtual_account && !process.env.STAGING)
+    wallet.virtual_account = await (
+      await db.folder("Virtual_accounts")
+    ).findOne({ _id: wallet.virtual_account });
 
   return {
     ok: !!wallet,
