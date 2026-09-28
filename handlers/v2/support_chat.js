@@ -1,7 +1,7 @@
 const create_chat_session = async (req) => {
   let { body, headers, db } = req;
 
-  let { profile } = headers;
+  let { profile, platform } = headers;
 
   let user_id = profile?._id;
 
@@ -463,7 +463,7 @@ const get_support_chats = async (req) => {
 
 const assign_support_chat = async (req) => {
   let { body, headers, db, services } = req;
-
+  let { platform } = headers;
   let { session_id, agent_id } = body || {};
 
   let Profile = await services("profiles");
@@ -555,8 +555,7 @@ const assign_support_chat = async (req) => {
         customer_phone: customer?.phone || null,
 
         platform: {
-          name: "Rushbox Logistics",
-          url: "https://rushboxapp.com",
+          name: platform.name,
         },
       },
     },

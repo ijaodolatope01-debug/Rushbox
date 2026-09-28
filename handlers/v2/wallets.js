@@ -568,7 +568,90 @@ const delete_bank_account = async (req) => {
   };
 };
 
+const mock_wallet_topup = async (req) => {
+  const { headers, db, body } = req;
+  const { profile } = headers;
+  const { amount, reason = "Mock wallet top-up" } = body || {};
+  if (!process.env.STAGING) {
+    return {
+      ok: false,
+      status: 403,
+      message: "INVALID APPROACH",
+    };
+  }
+
+  const value = Number(amount);
+
+  const Wallets = await db.folder("Wallets");
+
+  const wallet = await Wallets.findOne({
+    _id: profile._id,
+  });
+
+  if (!wallet) {
+    return {
+      ok: false,
+      status: 404,
+      status_code: "wallet_not_found",
+      message: "Wallet not found",
+    };
+  }
+
+  const transaction = {
+    _id: crypto.randomUUID(),
+    wallet: profile._id,
+    type: "top_up",
+    amount: value,
+    status: "successful",
+    reference: `MOCK-TOPUP-${crypto.randomUUID()}`,
+    reason,
+    created: Date.now(),
+    mock: true,
+  };
+
+  const result = await Wallets.updateOne(
+    {
+      _id: profile._id,
+    },
+    {
+      $inc: {
+        balance: Math.abs(value),
+      },
+    },
+  );
+
+  if (!result.modifiedCount) {
+    return {
+      ok: false,
+      status: 400,
+      status_code: "top_up_failed",
+      message: "Unable to top up wallet",
+    };
+  }
+
+  const Transactions = await db.folder("Transactions");
+
+  await Transactions.insertOne(transaction);
+
+  const updated_wallet = await Wallets.findOne({
+    _id: profile._id,
+  });
+
+  return {
+    ok: true,
+    status: 200,
+    status_code: "wallet_topup_successful",
+    message: "Mock wallet top-up successful",
+    data: {
+      amount: value,
+      transaction,
+      wallet: updated_wallet,
+    },
+  };
+};
+
 export {
+  mock_wallet_topup,
   delete_bank_account,
   get_bank_accounts,
   get_wallet,

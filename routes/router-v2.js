@@ -55,6 +55,7 @@ import {
   get_bank_accounts,
   get_banks,
   get_wallet,
+  mock_wallet_topup,
   transactions,
   validate_bank_account,
   withdraw,
@@ -295,6 +296,16 @@ const router = {
     security: "auth_token",
     schema: {
       body: {},
+    },
+  },
+  mock_wallet_topup: {
+    handler: mock_wallet_topup,
+    security: "auth_token",
+    schema: {
+      body: {
+        amount: { type: "number", required: true },
+        reason: { type: "string" },
+      },
     },
   },
 

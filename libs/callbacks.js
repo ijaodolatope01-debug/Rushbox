@@ -399,7 +399,6 @@ const after_callback = async ({ route, db, result, req, headers }, gp) => {
 
 const header_callback = async ({ headers }, gp) => {
   let auth = headers.authorization;
-  let { debug } = gp.utils;
 
   if (auth?.startsWith("rb_")) {
     if (auth.startsWith("rb_test_")) {
@@ -429,9 +428,83 @@ const header_callback = async ({ headers }, gp) => {
   }
 };
 
-const before_callback = async (arg, gp) => {
+const before_callback = async ({ route }, gp) => {
   if (process.env.STAGING) {
     gp.route_table.db_prefix = "STAGING";
+
+    const staging_disabled_routes = [
+      // Auth / account
+      "signin",
+      "request_otp",
+      "email_signin",
+      "update_email",
+      "refresh_api_key",
+      "retrieve_keys",
+      "update_phone",
+      "confirm_phone_update",
+      "user",
+      "update_profile",
+      "delete_account",
+      "confirm_delete_account",
+
+      // Support / agents
+      "agent_signin",
+      "confirm_agent_signin",
+      "create_chat_session",
+      "get_chat_sessions",
+      "get_chat_session",
+      "get_chat_messages",
+      "send_chat_message",
+      "end_chat_session",
+      "get_agent_chats",
+      "agent_retrieve_order",
+      "create_chat_agent",
+      "get_chat_agents",
+      "get_support_chats",
+      "assign_support_chat",
+
+      // Reviews
+      "add_review",
+      "courier_stats",
+      "get_reviews",
+
+      // Wallet operations that must not move real money
+      "get_banks",
+      "add_bank_account",
+      "validate_bank_account",
+      "withdraw",
+      "confirm_withdraw",
+      "delete_bank_account",
+
+      // User webhook management
+      "register_webhook",
+      "remove_webhook",
+      "retrieve_webhook",
+
+      "courier_webhook/:courier",
+
+      // Other application services
+      "register_push_token",
+      "contact",
+      "partnership_form",
+      "newsletter",
+    ];
+
+    if (staging_disabled_routes.includes(route)) {
+      return {
+        ok: false,
+        message: "This endpoint is not available in staging mode",
+        status: 403,
+      };
+    }
+  } else {
+    if (["mock_wallet_topup"].includes(route)) {
+      return {
+        ok: false,
+        message: "This endpoint is not available in live mode",
+        status: 403,
+      };
+    }
   }
 };
 
