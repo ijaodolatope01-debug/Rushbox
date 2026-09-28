@@ -427,7 +427,9 @@ const header_callback = async ({ headers }, gp) => {
       };
     }
   }
+};
 
+const before_callback = async (arg, gp) => {
   if (process.env.STAGING) {
     gp.route_table.db_prefix = "STAGING";
   }
@@ -479,6 +481,7 @@ const on_error_callback = async (payload, gp) => {
 
 export {
   after_callback,
+  before_callback,
   header_callback,
   on_error_callback,
   courier_webhook_callback,

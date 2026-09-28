@@ -2,7 +2,7 @@ import { Mongo } from "@godprotocol/repositories";
 import crypto from "crypto";
 
 const boots = async () => {
-  // return;
+  return;
   const repo = new Mongo({
     db_url: process.env.MONGODB_URI,
     db_name: "rushbox",
