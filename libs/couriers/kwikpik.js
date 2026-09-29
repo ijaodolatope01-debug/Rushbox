@@ -231,7 +231,7 @@ const webhook_kwikpik = async (req, { staging }) => {
      * ---------------------------------------------------------
      */
 
-    const rawBody = req.rawBody;
+    const rawBody = req.raw_body;
 
     if (typeof rawBody !== "string") {
       console.log("[KWIKPIK] Raw request body unavailable");
