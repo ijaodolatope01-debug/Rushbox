@@ -305,10 +305,10 @@ const webhook_kwikpik = async (req, { staging }) => {
      * ---------------------------------------------------------
      */
 
-    const status = payload.status || payload.data?.status;
+    const status = payload.event?.split(".")?.[1];
 
-    const request_id =
-      payload.requestId || payload.data?.trackingId || payload.data?.requestId;
+    console.log(status);
+    const request_id = payload.data.orderRef;
 
     /*
      * order.created currently contains:
@@ -350,6 +350,7 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     const result = await update_ongoing_status(request_id, status, "kwikpik", {
       db: req.db,
+      prop_type: "order_reference",
     });
 
     console.log("[KWIKPIK] Update result:", result);
