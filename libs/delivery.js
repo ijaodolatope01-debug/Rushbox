@@ -79,7 +79,7 @@ function normalise_order_response(data, details, courier) {
       longitude: details.destination_longitude,
     },
     estimate_id: details.estimate_id,
-    order_reference: details.order_reference,
+    order_reference: details.reference,
     payment_reference: details.payment_reference || "Direct from Wallet.",
     profile: details.user_id,
     delivery_notes: details.delivery_notes,

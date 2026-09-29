@@ -138,6 +138,8 @@ async function create_kwikpik(details) {
   return reply;
 }
 
+const crypto = require("crypto");
+
 const webhook_kwikpik = async (req, { staging }) => {
   try {
     console.log("========== KWIKPIK WEBHOOK START ==========");
@@ -149,6 +151,7 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!signatureHeader || typeof signatureHeader !== "string") {
       console.log("[KWIKPIK] missing signature header");
+
       return false;
     }
 
@@ -160,16 +163,17 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!timestampPart || !signaturePart) {
       console.log("[KWIKPIK] invalid signature format");
-      console.log("[KWIKPIK] timestamp part:", timestampPart);
-      console.log("[KWIKPIK] signature part:", signaturePart);
+
       return false;
     }
 
     const timestamp = timestampPart.trim().split("=")[1];
+
     const signature = signaturePart.trim().split("=")[1];
 
     if (!timestamp || !signature) {
       console.log("[KWIKPIK] missing timestamp or signature");
+
       return false;
     }
 
@@ -177,19 +181,23 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!Number.isFinite(timestampNumber)) {
       console.log("[KWIKPIK] invalid timestamp:", timestamp);
+
       return false;
     }
 
-    // Check timestamp is recent (within 5 minutes)
     const now = Math.floor(Date.now() / 1000);
+
     const timestampDifference = Math.abs(now - timestampNumber);
 
     console.log("[KWIKPIK] current timestamp:", now);
+
     console.log("[KWIKPIK] webhook timestamp:", timestampNumber);
+
     console.log("[KWIKPIK] timestamp difference:", timestampDifference);
 
     if (timestampDifference > 300) {
       console.log("[KWIKPIK] timestamp validation failed");
+
       return false;
     }
 
@@ -199,22 +207,25 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!secret) {
       console.log("[KWIKPIK] webhook secret is not configured");
+
       return false;
     }
 
-    const payload = req.body || {};
-
-    console.log("[KWIKPIK] payload:", JSON.stringify(payload, null, 2));
-
     /*
-     * Kwikpik signature:
+     * IMPORTANT:
      *
-     * HMAC-SHA256(
-     *   secret,
-     *   `${timestamp}.${JSON.stringify(payload)}`
-     * )
+     * Use the exact raw request body for signing.
+     *
+     * Do NOT use JSON.stringify(req.body) here.
      */
-    const signingString = `${timestamp}.${JSON.stringify(payload)}`;
+    const rawBody =
+      typeof req.raw_body === "string"
+        ? req.raw_body
+        : JSON.stringify(req.body || {});
+
+    console.log("[KWIKPIK] raw body:", rawBody);
+
+    const signingString = `${timestamp}.${rawBody}`;
 
     const expectedSignature = crypto
       .createHmac("sha256", secret)
@@ -222,10 +233,12 @@ const webhook_kwikpik = async (req, { staging }) => {
       .digest("hex");
 
     console.log("[KWIKPIK] received signature:", signature);
+
     console.log("[KWIKPIK] expected signature:", expectedSignature);
 
     if (signature.length !== expectedSignature.length) {
       console.log("[KWIKPIK] signature length mismatch");
+
       return false;
     }
 
@@ -238,35 +251,34 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!valid) {
       console.log("[KWIKPIK] signature validation failed");
+
       return false;
     }
 
     console.log("[KWIKPIK] signature validation passed");
 
-    /*
-     * Extract order information.
-     *
-     * Kwikpik can send different event structures, so support
-     * the known status/request ID locations.
-     */
-    console.log(payload.event);
-    const status = payload.event?.split(".")?.[1];
-
-    const request_id = payload.data?.orderRef;
+    const payload = req.body || {};
 
     console.log("[KWIKPIK] event:", payload.event);
+
+    console.log("[KWIKPIK] payload:", JSON.stringify(payload, null, 2));
+
+    const status = payload.status || payload.data?.status;
+
+    const request_id =
+      payload.requestId || payload.data?.trackingId || payload.data?.requestId;
+
     console.log("[KWIKPIK] status:", status);
+
     console.log("[KWIKPIK] request_id:", request_id);
 
     /*
-     * order.created does not contain a delivery status or
-     * request/tracking ID in the payload you showed.
-     *
-     * It is therefore authenticated successfully but there is
-     * nothing to update in Ongoing yet.
+     * order.created does not contain a status
+     * or tracking ID in the payload you received.
      */
     if (!status) {
       console.log("[KWIKPIK] missing status");
+
       console.log("[KWIKPIK] event does not contain a status; ignoring event");
 
       return true;
@@ -274,25 +286,28 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     if (!request_id) {
       console.log("[KWIKPIK] missing request_id");
+
       return false;
     }
 
     if (!req.db) {
       console.log("[KWIKPIK] database unavailable");
+
       return false;
     }
 
     const result = await update_ongoing_status(request_id, status, "kwikpik", {
       db: req.db,
-      prop_type: "order_reference",
     });
 
     console.log("[KWIKPIK] update result:", result);
+
     console.log("========== KWIKPIK WEBHOOK END ==========");
 
     return result;
   } catch (error) {
     console.error("[KWIKPIK] fatal webhook error:", error);
+
     console.log("========== KWIKPIK WEBHOOK END ==========");
 
     return false;
