@@ -138,8 +138,6 @@ async function create_kwikpik(details) {
   return reply;
 }
 
-const crypto = require("crypto");
-
 const webhook_kwikpik = async (req, { staging }) => {
   try {
     console.log("========== KWIKPIK WEBHOOK START ==========");
