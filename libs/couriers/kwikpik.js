@@ -212,7 +212,7 @@ const webhook_kwikpik = async (req, { staging }) => {
      */
 
     const secret = staging
-      ? process.env.KWIKPIK_TEST_WEBHOOK_SECRET
+      ? process.env.KWIKPIK_WEBHOOK_SECRET_TEST
       : process.env.KWIKPIK_WEBHOOK_SECRET;
 
     if (!secret) {
