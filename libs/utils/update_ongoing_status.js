@@ -4,7 +4,7 @@ const update_ongoing_status = async (
   courier_key,
   status,
   courier,
-  { db, webhook_payload },
+  { db, webhook_payload, prop_type = "courier_key" },
 ) => {
   console.log("========== UPDATE ONGOING STATUS START ==========");
 
@@ -51,11 +51,11 @@ const update_ongoing_status = async (
 
   console.log("[STATUS] Final MongoDB update:", update);
 
-  console.log("[STATUS] Finding order with courier_key:", courier_key);
+  console.log(`[STATUS] Finding order with ${prop_type}:`, courier_key);
 
   console.log(
     "[STATUS] Order Preview:",
-    await Orders.findOne({ courier_key }),
+    await Orders.findOne({ [prop_type]: courier_key }),
     await Orders.findOne(
       {},
       {
@@ -64,20 +64,20 @@ const update_ongoing_status = async (
     ),
   );
 
-  let order = await Orders.findOne({ courier_key });
+  let order = await Orders.findOne({ [prop_type]: courier_key });
   if (!order) {
     await (
       await db.folder("Webhook_orders")
     ).insertOne({
       _id: crypto.randomUUID(),
-      courier_key,
+      [prop_type]: courier_key,
       order: webhook_payload,
     });
   }
 
   update.status_message = STATUSES_MESSAGE[ongoing_status];
   const result = await Orders.findOneAndUpdate(
-    { courier_key },
+    { [prop_type]: courier_key },
     {
       $set: update,
       $push: {

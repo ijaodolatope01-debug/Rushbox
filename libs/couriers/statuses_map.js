@@ -8,6 +8,7 @@ const STATUSES_MAPS = {
   },
   dellyman: {
     PENDING: 2,
+    ASSIGNED: 3,
     INTRANSIT: 4,
     COMPLETED: 10,
     CANCELLED: -1,

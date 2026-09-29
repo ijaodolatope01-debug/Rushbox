@@ -22,7 +22,7 @@ const store_delivery = async (response, body, status, db) => {
     actual_fare: null,
     payment_reference: body.payment_reference,
     payment_status: body.payment_status,
-    order_reference: body.order_reference,
+    order_reference: body.reference,
     status: status?.state || "ongoing",
     norm: body.norm,
     user_id: body.user_id,

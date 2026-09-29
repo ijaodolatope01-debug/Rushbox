@@ -2,14 +2,7 @@ import { debug } from "../../handlers/v2/delivery.js";
 import update_ongoing_status from "../utils/update_ongoing_status.js";
 import crypto from "crypto";
 
-const estimate_kwikpik = async ({
-  pickup_address,
-  destination_address,
-  pickup_latitude,
-  pickup_longitude,
-  destination_latitude,
-  destination_longitude,
-}) => {
+const estimate_kwikpik = async ({ pickup_address, destination_address }) => {
   try {
     let body = {
       // insured: false,
@@ -256,10 +249,10 @@ const webhook_kwikpik = async (req, { staging }) => {
      * Kwikpik can send different event structures, so support
      * the known status/request ID locations.
      */
-    const status = payload.status || payload.data?.status;
+    console.log(payload.event);
+    const status = payload.event?.split(".")?.[1];
 
-    const request_id =
-      payload.requestId || payload.data?.trackingId || payload.data?.requestId;
+    const request_id = payload.data?.orderRef;
 
     console.log("[KWIKPIK] event:", payload.event);
     console.log("[KWIKPIK] status:", status);
@@ -291,6 +284,7 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     const result = await update_ongoing_status(request_id, status, "kwikpik", {
       db: req.db,
+      prop_type: "order_reference",
     });
 
     console.log("[KWIKPIK] update result:", result);

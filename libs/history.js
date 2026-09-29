@@ -134,6 +134,7 @@ const normalise_order = (o) => {
   nrm.order_reference = o.order_reference;
   nrm.created = o.created;
   nrm.ongoing_status = o.ongoing_status;
+  nrm.order_reference = o.order_reference;
   nrm.tracking = o.tracking;
 
   if (nrm.delivery_fare) {

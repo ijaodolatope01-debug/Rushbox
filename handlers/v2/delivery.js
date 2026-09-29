@@ -231,6 +231,8 @@ const create_delivery = async (req, opts) => {
       ...estimate.courier_estimate?.meta,
     };
 
+    details.reference = details.reference || crypto.randomUUID();
+
     estimate = estimate.courier_estimate;
     // Handle payment reference
     if (details.payment_reference) {
