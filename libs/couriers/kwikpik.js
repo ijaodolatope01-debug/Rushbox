@@ -295,6 +295,14 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     console.log("[KWIKPIK] Event:", payload.event);
 
+    if (payload.event !== "package.status_changed") {
+      console.log("[KWIKPIK] Ignoring event:", payload.event);
+
+      console.log("========== KWIKPIK WEBHOOK END ==========");
+
+      return false;
+    }
+
     console.log("[KWIKPIK] Webhook ID:", req.headers?.["x-kwikpik-webhook-id"]);
 
     console.log("[KWIKPIK] Payload:", JSON.stringify(payload, null, 2));
@@ -305,10 +313,10 @@ const webhook_kwikpik = async (req, { staging }) => {
      * ---------------------------------------------------------
      */
 
-    const status = payload.event?.split(".")?.[1];
+    const status = payload.data?.status;
 
     console.log(status);
-    const request_id = payload.data.orderRef;
+    const request_id = payload.data.trackingId;
 
     /*
      * order.created currently contains:
