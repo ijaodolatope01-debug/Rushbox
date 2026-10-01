@@ -358,7 +358,6 @@ const webhook_kwikpik = async (req, { staging }) => {
 
     const result = await update_ongoing_status(request_id, status, "kwikpik", {
       db: req.db,
-      prop_type: "order_reference",
     });
 
     console.log("[KWIKPIK] Update result:", result);
